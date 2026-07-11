@@ -1,7 +1,4 @@
 {
-  "nome": "João Silva",
-  "email": "joao.silva@exemplo.com.br",
-  "contaGoogleVinculada": true,
   "organizacao": {
     "nomeComercio": "Supermercado Silva",
     "cnpj": "12.345.678/0001-90"

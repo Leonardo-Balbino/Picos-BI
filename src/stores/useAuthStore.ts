@@ -24,5 +24,8 @@ export const useAuthStore = defineStore('auth', {
     logout() {
       this.usuario = null
     },
+    desvincular() {
+      if (this.usuario) this.usuario.contaGoogleVinculada = false
+    },
   },
 })

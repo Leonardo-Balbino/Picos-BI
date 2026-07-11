@@ -2,9 +2,6 @@ import { apiGet } from './api'
 import type { Venda, Produto, Categoria, Vendedor, Cliente } from '@/types'
 
 export interface UsuarioConfig {
-  nome: string
-  email: string
-  contaGoogleVinculada: boolean
   organizacao: {
     nomeComercio: string
     cnpj: string
