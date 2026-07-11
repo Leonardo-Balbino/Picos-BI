@@ -1,0 +1,282 @@
+[
+  {
+    "id": "c01",
+    "nome": "Acme Tech",
+    "ramo": "Varejo",
+    "primeiraCompra": "2026-01-05T12:28:34.000Z",
+    "ultimaCompra": "2026-07-03T19:39:09.000Z"
+  },
+  {
+    "id": "c02",
+    "nome": "Global Ind",
+    "ramo": "Logística",
+    "primeiraCompra": "2026-01-01T12:35:37.000Z",
+    "ultimaCompra": "2026-07-10T12:22:44.000Z"
+  },
+  {
+    "id": "c03",
+    "nome": "Stark Comércio",
+    "ramo": "Serviços",
+    "primeiraCompra": "2026-01-09T18:07:52.000Z",
+    "ultimaCompra": "2026-07-10T20:46:47.000Z"
+  },
+  {
+    "id": "c04",
+    "nome": "Wayne Exports",
+    "ramo": "Varejo",
+    "primeiraCompra": "2026-01-08T09:54:17.000Z",
+    "ultimaCompra": "2026-07-10T20:17:43.000Z"
+  },
+  {
+    "id": "c05",
+    "nome": "Inova Exports",
+    "ramo": "Software",
+    "primeiraCompra": "2026-03-05T17:00:03.000Z",
+    "ultimaCompra": "2026-07-03T19:52:57.000Z"
+  },
+  {
+    "id": "c06",
+    "nome": "Nexus Labs",
+    "ramo": "Varejo",
+    "primeiraCompra": "2026-02-01T17:53:07.000Z",
+    "ultimaCompra": "2026-07-11T12:42:16.000Z"
+  },
+  {
+    "id": "c07",
+    "nome": "Prime Exports",
+    "ramo": "P&D",
+    "primeiraCompra": "2026-01-19T10:39:01.000Z",
+    "ultimaCompra": "2026-07-04T18:46:15.000Z"
+  },
+  {
+    "id": "c08",
+    "nome": "Vértice Exports",
+    "ramo": "Logística",
+    "primeiraCompra": "2026-02-23T13:35:18.000Z",
+    "ultimaCompra": "2026-06-30T08:53:40.000Z"
+  },
+  {
+    "id": "c09",
+    "nome": "Horizonte Corp",
+    "ramo": "Varejo",
+    "primeiraCompra": "2026-01-09T13:56:43.000Z",
+    "ultimaCompra": "2026-07-09T19:57:24.000Z"
+  },
+  {
+    "id": "c10",
+    "nome": "Quantum Corp",
+    "ramo": "Atacadista",
+    "primeiraCompra": "2026-03-01T20:39:53.000Z",
+    "ultimaCompra": "2026-07-10T10:11:40.000Z"
+  },
+  {
+    "id": "c11",
+    "nome": "Atlas Tech",
+    "ramo": "Atacadista",
+    "primeiraCompra": "2026-01-02T21:41:44.000Z",
+    "ultimaCompra": "2026-07-01T10:53:24.000Z"
+  },
+  {
+    "id": "c12",
+    "nome": "Fusion Corp",
+    "ramo": "Software",
+    "primeiraCompra": "2026-01-03T12:45:46.000Z",
+    "ultimaCompra": "2026-07-08T21:16:46.000Z"
+  },
+  {
+    "id": "c13",
+    "nome": "Meridian Corp",
+    "ramo": "Logística",
+    "primeiraCompra": "2026-02-11T16:58:26.000Z",
+    "ultimaCompra": "2026-06-18T10:23:25.000Z"
+  },
+  {
+    "id": "c14",
+    "nome": "Apex Comércio",
+    "ramo": "Logística",
+    "primeiraCompra": "2026-01-01T15:10:06.000Z",
+    "ultimaCompra": "2026-07-06T14:10:54.000Z"
+  },
+  {
+    "id": "c15",
+    "nome": "Vetor Corp",
+    "ramo": "Atacadista",
+    "primeiraCompra": "2026-01-15T12:46:43.000Z",
+    "ultimaCompra": "2026-06-30T10:41:45.000Z"
+  },
+  {
+    "id": "c16",
+    "nome": "Zenith Comércio",
+    "ramo": "Logística",
+    "primeiraCompra": "2026-01-02T12:16:31.000Z",
+    "ultimaCompra": "2026-07-08T20:08:26.000Z"
+  },
+  {
+    "id": "c17",
+    "nome": "Norte Exports",
+    "ramo": "Atacadista",
+    "primeiraCompra": "2026-01-17T16:54:04.000Z",
+    "ultimaCompra": "2026-04-24T19:45:04.000Z"
+  },
+  {
+    "id": "c18",
+    "nome": "União Exports",
+    "ramo": "Serviços",
+    "primeiraCompra": "2026-01-08T10:52:17.000Z",
+    "ultimaCompra": "2026-07-09T14:04:01.000Z"
+  },
+  {
+    "id": "c19",
+    "nome": "Central Exports",
+    "ramo": "Software",
+    "primeiraCompra": "2026-01-02T18:34:11.000Z",
+    "ultimaCompra": "2026-07-09T16:16:47.000Z"
+  },
+  {
+    "id": "c20",
+    "nome": "Alfa Sistemas",
+    "ramo": "Manufatura",
+    "primeiraCompra": "2026-03-21T09:05:57.000Z",
+    "ultimaCompra": "2026-07-08T19:08:55.000Z"
+  },
+  {
+    "id": "c21",
+    "nome": "Bravo Distribuidora",
+    "ramo": "P&D",
+    "primeiraCompra": "2026-01-02T16:29:07.000Z",
+    "ultimaCompra": "2026-07-11T21:14:09.000Z"
+  },
+  {
+    "id": "c22",
+    "nome": "Delta Sistemas",
+    "ramo": "Construção",
+    "primeiraCompra": "2026-01-03T19:29:16.000Z",
+    "ultimaCompra": "2026-07-03T15:53:32.000Z"
+  },
+  {
+    "id": "c23",
+    "nome": "Ômega Exports",
+    "ramo": "Serviços",
+    "primeiraCompra": "2026-01-11T13:19:42.000Z",
+    "ultimaCompra": "2026-07-10T21:18:25.000Z"
+  },
+  {
+    "id": "c24",
+    "nome": "Vega Exports",
+    "ramo": "P&D",
+    "primeiraCompra": "2026-01-22T14:43:05.000Z",
+    "ultimaCompra": "2026-07-11T07:16:19.000Z"
+  },
+  {
+    "id": "c25",
+    "nome": "Solar Distribuidora",
+    "ramo": "Varejo",
+    "primeiraCompra": "2026-01-19T11:16:44.000Z",
+    "ultimaCompra": "2026-07-11T07:51:04.000Z"
+  },
+  {
+    "id": "c26",
+    "nome": "Cristal Sistemas",
+    "ramo": "Manufatura",
+    "primeiraCompra": "2026-01-21T20:43:22.000Z",
+    "ultimaCompra": "2026-07-03T18:01:48.000Z"
+  },
+  {
+    "id": "c27",
+    "nome": "Metrópole Tech",
+    "ramo": "Logística",
+    "primeiraCompra": "2026-02-06T16:19:45.000Z",
+    "ultimaCompra": "2026-05-23T06:02:05.000Z"
+  },
+  {
+    "id": "c28",
+    "nome": "Pioneira Labs",
+    "ramo": "P&D",
+    "primeiraCompra": "2026-01-09T18:23:46.000Z",
+    "ultimaCompra": "2026-06-22T13:00:52.000Z"
+  },
+  {
+    "id": "c29",
+    "nome": "Vanguarda Labs",
+    "ramo": "Varejo",
+    "primeiraCompra": "2026-01-14T10:15:00.000Z",
+    "ultimaCompra": "2026-07-10T14:04:36.000Z"
+  },
+  {
+    "id": "c30",
+    "nome": "Cume Tech",
+    "ramo": "Varejo",
+    "primeiraCompra": "2026-01-01T10:33:51.000Z",
+    "ultimaCompra": "2026-07-10T19:15:12.000Z"
+  },
+  {
+    "id": "c31",
+    "nome": "Litoral Tech",
+    "ramo": "Atacadista",
+    "primeiraCompra": "2026-01-02T13:29:44.000Z",
+    "ultimaCompra": "2026-07-11T15:12:09.000Z"
+  },
+  {
+    "id": "c32",
+    "nome": "Planalto Corp",
+    "ramo": "Logística",
+    "primeiraCompra": "2026-01-17T19:50:25.000Z",
+    "ultimaCompra": "2026-07-06T09:21:12.000Z"
+  },
+  {
+    "id": "c33",
+    "nome": "Sertão Labs",
+    "ramo": "Manufatura",
+    "primeiraCompra": "2026-01-11T15:00:52.000Z",
+    "ultimaCompra": "2026-06-23T18:45:25.000Z"
+  },
+  {
+    "id": "c34",
+    "nome": "Pampa Sistemas",
+    "ramo": "Atacadista",
+    "primeiraCompra": "2026-01-23T09:55:39.000Z",
+    "ultimaCompra": "2026-07-04T19:16:34.000Z"
+  },
+  {
+    "id": "c35",
+    "nome": "Cerrado Exports",
+    "ramo": "P&D",
+    "primeiraCompra": "2026-01-03T11:28:58.000Z",
+    "ultimaCompra": "2026-07-11T21:50:14.000Z"
+  },
+  {
+    "id": "c36",
+    "nome": "Aurora Labs",
+    "ramo": "Construção",
+    "primeiraCompra": "2026-01-02T13:10:37.000Z",
+    "ultimaCompra": "2026-07-09T12:00:00.000Z"
+  },
+  {
+    "id": "c37",
+    "nome": "Estrela Corp",
+    "ramo": "Manufatura",
+    "primeiraCompra": "2026-02-21T12:00:43.000Z",
+    "ultimaCompra": "2026-06-20T20:02:04.000Z"
+  },
+  {
+    "id": "c38",
+    "nome": "Bússola Ind",
+    "ramo": "Manufatura",
+    "primeiraCompra": "2026-01-20T10:06:06.000Z",
+    "ultimaCompra": "2026-06-27T19:33:13.000Z"
+  },
+  {
+    "id": "c39",
+    "nome": "Órbita Ind",
+    "ramo": "Logística",
+    "primeiraCompra": "2026-01-04T11:11:28.000Z",
+    "ultimaCompra": "2026-07-04T18:04:21.000Z"
+  },
+  {
+    "id": "c40",
+    "nome": "Elo Distribuidora",
+    "ramo": "Manufatura",
+    "primeiraCompra": "2026-01-02T14:24:23.000Z",
+    "ultimaCompra": "2026-07-07T11:13:24.000Z"
+  }
+]

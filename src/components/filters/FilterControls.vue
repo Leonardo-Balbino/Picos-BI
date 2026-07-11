@@ -1,15 +1,18 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import { ToggleGroupRoot, ToggleGroupItem, PopoverRoot, PopoverTrigger, PopoverPortal, PopoverContent } from 'reka-ui'
 import BaseSelect from '@/components/ui/BaseSelect.vue'
 import BaseButton from '@/components/ui/BaseButton.vue'
 import { useFiltersStore } from '@/stores/useFiltersStore'
 import { useUiStore } from '@/stores/useUiStore'
+import { useVendasStore } from '@/stores/useVendasStore'
 import type { PeriodoPreset } from '@/types'
 
 withDefaults(defineProps<{ stacked?: boolean }>(), { stacked: false })
 
 const filters = useFiltersStore()
 const ui = useUiStore()
+const vendas = useVendasStore()
 
 const periodos: { value: PeriodoPreset; label: string }[] = [
   { value: 'hoje', label: 'Hoje' },
@@ -20,13 +23,14 @@ const periodos: { value: PeriodoPreset; label: string }[] = [
   { value: 'ano', label: 'Ano' },
 ]
 
-// Opções placeholder — substituídas por dados reais (lojas/categorias/vendedores) na camada de mocks/stores.
-const lojaOptions = [
+const lojaOptions = computed(() => [
   { value: 'todas', label: 'Todas as Lojas' },
-  { value: 'matriz', label: 'Loja Matriz' },
-  { value: 'filial-sul', label: 'Filial Sul' },
-]
-const categoriaOptions = [{ value: 'todas', label: 'Todas as Categorias' }]
+  ...vendas.lojas.map((l) => ({ value: l, label: l })),
+])
+const categoriaOptions = computed(() => [
+  { value: 'todas', label: 'Todas as Categorias' },
+  ...vendas.categorias.map((c) => ({ value: c.id, label: c.nome })),
+])
 const formaPagamentoOptions = [
   { value: 'todas', label: 'Todas as Formas' },
   { value: 'dinheiro', label: 'Dinheiro' },
@@ -34,7 +38,10 @@ const formaPagamentoOptions = [
   { value: 'credito', label: 'Cartão de Crédito' },
   { value: 'debito', label: 'Cartão de Débito' },
 ]
-const vendedorOptions = [{ value: 'todos', label: 'Todos os Vendedores' }]
+const vendedorOptions = computed(() => [
+  { value: 'todos', label: 'Todos os Vendedores' },
+  ...vendas.vendedores.map((v) => ({ value: v.id, label: v.nome })),
+])
 
 function handleInicioChange(e: Event) {
   filters.setRangePersonalizado((e.target as HTMLInputElement).value, filters.range.fim)

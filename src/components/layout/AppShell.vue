@@ -3,6 +3,11 @@ import { RouterView } from 'vue-router'
 import AppSidebar from './AppSidebar.vue'
 import AppTopbar from './AppTopbar.vue'
 import AppToast from '@/components/ui/AppToast.vue'
+import { useVendasStore } from '@/stores/useVendasStore'
+import { useConfiguracoesStore } from '@/stores/useConfiguracoesStore'
+
+useVendasStore().carregar()
+useConfiguracoesStore().carregar()
 </script>
 
 <template>

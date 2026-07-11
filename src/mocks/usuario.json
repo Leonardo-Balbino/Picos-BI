@@ -1,0 +1,20 @@
+{
+  "nome": "João Silva",
+  "email": "joao.silva@exemplo.com.br",
+  "contaGoogleVinculada": true,
+  "organizacao": {
+    "nomeComercio": "Supermercado Silva",
+    "cnpj": "12.345.678/0001-90"
+  },
+  "metas": {
+    "faturamentoMensalGlobal": 150000,
+    "metaPorVendedorMedia": 30000
+  },
+  "preferencias": {
+    "periodoPadrao": "30d",
+    "moedaPadrao": "BRL",
+    "fusoHorario": "America/Sao_Paulo",
+    "relatoriosSemanaisPorEmail": true,
+    "alertasMetaAtingida": false
+  }
+}

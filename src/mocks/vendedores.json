@@ -1,0 +1,38 @@
+[
+  {
+    "id": "v01",
+    "nome": "Ana Silva",
+    "loja": "Loja Matriz",
+    "metaMensal": 140000
+  },
+  {
+    "id": "v02",
+    "nome": "Carlos Santos",
+    "loja": "Filial Sul",
+    "metaMensal": 130000
+  },
+  {
+    "id": "v03",
+    "nome": "Beatriz Costa",
+    "loja": "Loja Matriz",
+    "metaMensal": 125000
+  },
+  {
+    "id": "v04",
+    "nome": "Marcos Lima",
+    "loja": "Filial Sul",
+    "metaMensal": 120000
+  },
+  {
+    "id": "v05",
+    "nome": "Mariana Rosa",
+    "loja": "Loja Matriz",
+    "metaMensal": 115000
+  },
+  {
+    "id": "v06",
+    "nome": "Rafael Oliveira",
+    "loja": "Filial Sul",
+    "metaMensal": 110000
+  }
+]

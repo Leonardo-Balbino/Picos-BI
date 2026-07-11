@@ -34,13 +34,17 @@ export interface Produto {
 export interface Cliente {
   id: string
   nome: string
+  ramo: string
   primeiraCompra: string
   ultimaCompra: string
 }
 
+export type Segmento = 'vip' | 'regular' | 'ocasional'
+
 export interface Vendedor {
   id: string
   nome: string
+  loja: string
   avatar?: string
   metaMensal: number
 }
