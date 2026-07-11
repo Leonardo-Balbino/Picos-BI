@@ -81,6 +81,19 @@ export function variacaoPercentual(atual: number, anterior: number): number {
   return ((atual - anterior) / anterior) * 100
 }
 
+export interface ProdutoTabela {
+  [key: string]: unknown
+  produtoId: string
+  sku: string
+  nome: string
+  categoriaNome: string
+  quantidade: number
+  faturamento: number
+  ticketMedio: number
+  margem: number
+  estoque: number
+}
+
 export interface VendaExibicao {
   [key: string]: unknown
   id: string
@@ -497,7 +510,7 @@ export function useAggregations() {
       .sort((a, b) => b.dataHora.localeCompare(a.dataHora)),
   )
 
-  function tabelaProdutos() {
+  function tabelaProdutos(): ProdutoTabela[] {
     const mapa = new Map<string, { quantidade: number; valor: number; custo: number }>()
     for (const v of vendasConcluidas.value) {
       for (const it of itensFiltrados(v)) {
