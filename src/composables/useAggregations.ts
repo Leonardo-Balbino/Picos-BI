@@ -91,6 +91,18 @@ export interface FormaPagamentoLinha {
   percentual: number
 }
 
+export interface VendedorTabela {
+  [key: string]: unknown
+  vendedorId: string
+  nome: string
+  loja: string
+  faturamento: number
+  nVendas: number
+  ticketMedio: number
+  statusMeta: number
+  tendencia: number
+}
+
 export interface ProdutoTabela {
   [key: string]: unknown
   produtoId: string
@@ -562,7 +574,7 @@ export function useAggregations() {
     return linhas
   }
 
-  function tabelaVendedores() {
+  function tabelaVendedores(): VendedorTabela[] {
     const inicioMes = new Date(Date.UTC(HOJE.getUTCFullYear(), HOJE.getUTCMonth(), 1))
     const ivMes: Intervalo = { inicio: inicioMes, fim: fimDoDia(HOJE) }
     const vendasMes = vendasNoIntervalo(ivMes).filter((v) => v.status === 'concluida')
@@ -587,6 +599,24 @@ export function useAggregations() {
         tendencia: variacaoPercentual(faturamentoAtualVendedor, faturamentoAnteriorVendedor),
       }
     })
+  }
+
+  /** Histórico mensal do faturamento da equipe (independe do período selecionado): cada mês vs. o mês anterior. */
+  function desempenhoEquipeMensal() {
+    const porMes = new Map<string, number>()
+    for (const v of store.vendas) {
+      if (v.status !== 'concluida' || !passaFiltrosBase(v)) continue
+      const itens = itensFiltrados(v)
+      if (itens.length === 0) continue
+      const d = new Date(v.dataHora)
+      const chave = `${d.getUTCFullYear()}-${d.getUTCMonth()}`
+      porMes.set(chave, (porMes.get(chave) ?? 0) + valorItens(itens))
+    }
+    const chaves = Array.from(porMes.keys()).sort()
+    const categorias = chaves.map((chave) => MESES[Number(chave.split('-')[1])])
+    const atual = chaves.map((chave) => porMes.get(chave) ?? 0)
+    const anterior = atual.map((_, i) => (i > 0 ? atual[i - 1] : 0))
+    return { categorias, atual, anterior }
   }
 
   function tabelaClientes() {
@@ -654,6 +684,7 @@ export function useAggregations() {
     tabelaVendas,
     tabelaProdutos,
     tabelaVendedores,
+    desempenhoEquipeMensal,
     tabelaClientes,
     alertaEstoque,
     clientesAtivos,
