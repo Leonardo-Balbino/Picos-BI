@@ -6,6 +6,7 @@ import KpiCard from '@/components/ui/KpiCard.vue'
 import DataTable, { type DataTableColumn } from '@/components/ui/DataTable.vue'
 import SkeletonCard from '@/components/ui/SkeletonCard.vue'
 import RankingList, { type RankingItem } from '@/components/ui/RankingList.vue'
+import EmptyState from '@/components/ui/EmptyState.vue'
 import BarChart from '@/components/charts/BarChart.vue'
 import { useVendasStore } from '@/stores/useVendasStore'
 import { useAggregations } from '@/composables/useAggregations'
@@ -146,7 +147,8 @@ const columns: DataTableColumn[] = [
           <p class="mb-3 flex items-center gap-2 text-sm font-semibold text-ink">
             <i class="bi bi-trophy text-warning-500" /> Top 5 Faturamento
           </p>
-          <RankingList :items="itemsTopFaturamento" />
+          <EmptyState v-if="itemsTopFaturamento.length === 0" title="Sem clientes no período" />
+          <RankingList v-else :items="itemsTopFaturamento" />
         </div>
       </div>
     </template>

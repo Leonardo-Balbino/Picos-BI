@@ -6,6 +6,7 @@ import KpiCard from '@/components/ui/KpiCard.vue'
 import DataTable, { type DataTableColumn } from '@/components/ui/DataTable.vue'
 import SkeletonCard from '@/components/ui/SkeletonCard.vue'
 import RankingList, { type RankingItem } from '@/components/ui/RankingList.vue'
+import EmptyState from '@/components/ui/EmptyState.vue'
 import BarChart from '@/components/charts/BarChart.vue'
 import { useVendasStore } from '@/stores/useVendasStore'
 import { useAggregations, type VendedorTabela } from '@/composables/useAggregations'
@@ -98,7 +99,8 @@ const columns: DataTableColumn[] = [
           <div class="mb-3 flex items-center justify-between">
             <p class="text-sm font-semibold text-ink">Top 5 Vendedores</p>
           </div>
-          <RankingList :items="itemsRanking" />
+          <EmptyState v-if="itemsRanking.length === 0" title="Sem vendas no período" />
+          <RankingList v-else :items="itemsRanking" />
           <a href="#detalhamento-vendedores" class="mt-3 block text-center text-xs font-semibold text-green-700 hover:underline">
             Ver todos os rankings
           </a>
