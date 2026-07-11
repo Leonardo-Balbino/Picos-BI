@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import DevUiPage from '@/pages/DevUiPage.vue'
+import { RouterView } from 'vue-router'
 </script>
 
 <template>
-  <DevUiPage />
+  <RouterView />
 </template>
