@@ -81,6 +81,16 @@ export function variacaoPercentual(atual: number, anterior: number): number {
   return ((atual - anterior) / anterior) * 100
 }
 
+export interface FormaPagamentoLinha {
+  [key: string]: unknown
+  forma: string
+  label: string
+  valor: number
+  nTransacoes: number
+  ticketMedio: number
+  percentual: number
+}
+
 export interface ProdutoTabela {
   [key: string]: unknown
   produtoId: string
@@ -248,7 +258,7 @@ export function useAggregations() {
     { forma: 'dinheiro' as const, label: 'Dinheiro' },
   ]
 
-  function porFormaPagamento() {
+  function porFormaPagamento(): FormaPagamentoLinha[] {
     const somas = new Map<string, number>()
     const transacoes = new Map<string, number>()
     for (const v of vendasConcluidas.value) {

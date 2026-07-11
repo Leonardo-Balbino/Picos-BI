@@ -10,18 +10,19 @@ const props = withDefaults(
     series: { name: string; data: number[] }[]
     height?: number
     highlightIndex?: number
+    stacked?: boolean
     valueFormatter?: (v: number) => string
   }>(),
-  { height: 260 },
+  { height: 260, stacked: false },
 )
 
 const distributed = computed(() => props.highlightIndex !== undefined && props.series.length === 1)
 
 const options = computed<ApexOptions>(() => {
   const overrides: ApexOptions = {
-    chart: { type: 'bar', height: props.height },
+    chart: { type: 'bar', height: props.height, stacked: props.stacked },
     plotOptions: {
-      bar: { columnWidth: '55%', borderRadius: 4, distributed: distributed.value },
+      bar: { columnWidth: props.stacked ? '45%' : '55%', borderRadius: props.stacked ? 2 : 4, distributed: distributed.value },
     },
     legend: { show: !distributed.value },
     xaxis: { categories: props.categories },
