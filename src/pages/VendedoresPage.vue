@@ -55,12 +55,12 @@ const columns: DataTableColumn[] = [
     <PageHeader title="Vendedores" subtitle="Visão geral do desempenho da equipe de vendas." />
     <GlobalFilters />
 
-    <div v-if="!vendasStore.carregado" class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+    <div v-if="!vendasStore.carregado" class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
       <SkeletonCard v-for="i in 4" :key="i" variant="kpi" />
     </div>
 
     <template v-else>
-      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
         <KpiCard label="Vendedores Ativos" :value="formatNumber(vendasStore.vendedores.length)" icon="bi-person-badge" suffix="Equipe atual" />
         <KpiCard
           label="Faturamento Total"
@@ -93,7 +93,7 @@ const columns: DataTableColumn[] = [
         </div>
       </div>
 
-      <div class="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-2">
+      <div class="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2">
         <div class="rounded-card bg-surface p-5 shadow-sm">
           <div class="mb-3 flex items-center justify-between">
             <p class="text-sm font-semibold text-ink">Top 5 Vendedores</p>

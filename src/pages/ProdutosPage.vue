@@ -101,12 +101,12 @@ const columns: DataTableColumn[] = [
     <PageHeader title="Produtos" subtitle="Análise de performance e gestão do portfólio de produtos." />
     <GlobalFilters />
 
-    <div v-if="!vendasStore.carregado" class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+    <div v-if="!vendasStore.carregado" class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
       <SkeletonCard v-for="i in 4" :key="i" variant="kpi" />
     </div>
 
     <template v-else>
-      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
         <KpiCard label="Produtos Ativos" :value="formatNumber(vendasStore.produtos.length)" icon="bi-box-seam" suffix="Portfólio total" />
         <KpiCard
           label="Itens Vendidos"
@@ -123,8 +123,8 @@ const columns: DataTableColumn[] = [
         <KpiCard label="Margem Média" :value="formatPercent(margemMedia, true)" icon="bi-percent" />
       </div>
 
-      <div class="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-3">
-        <div class="rounded-card bg-surface p-5 shadow-sm lg:col-span-2">
+      <div class="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+        <div class="rounded-card bg-surface p-5 shadow-sm md:col-span-2">
           <p class="text-sm font-semibold text-ink">Curva ABC de Produtos</p>
           <p class="mb-2 text-xs text-ink-muted">Classificação por impacto no faturamento</p>
           <ParetoChart :categorias="abc.categorias" :valores="abc.valores" :classes="abc.classes" :acumulado="abc.acumulado" />
@@ -149,8 +149,8 @@ const columns: DataTableColumn[] = [
         </div>
       </div>
 
-      <div class="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-3">
-        <div id="detalhamento-produtos" class="rounded-card bg-surface p-5 shadow-sm lg:col-span-2">
+      <div class="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+        <div id="detalhamento-produtos" class="rounded-card bg-surface p-5 shadow-sm md:col-span-2">
           <div class="flex flex-wrap items-center justify-between gap-3">
             <div>
               <p class="text-sm font-semibold text-ink">Detalhamento de Produtos</p>

@@ -68,12 +68,12 @@ const itemsCategoria = computed<RankingItem[]>(() =>
     <PageHeader title="Visão Geral" />
     <GlobalFilters />
 
-    <div v-if="!vendasStore.carregado" class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
+    <div v-if="!vendasStore.carregado" class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-5">
       <SkeletonCard v-for="i in 5" :key="i" variant="kpi" />
     </div>
 
     <template v-else>
-      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
+      <div class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-5">
         <KpiCard
           label="Faturamento"
           :value="formatCurrency(agg.kpisGerais.value.faturamento)"
@@ -102,8 +102,8 @@ const itemsCategoria = computed<RankingItem[]>(() =>
         <KpiCard label="Meta do Mês" :progress="agg.metaDoMes.value.progresso" />
       </div>
 
-      <div class="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-3">
-        <div class="rounded-card bg-surface p-5 shadow-sm lg:col-span-2">
+      <div class="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+        <div class="rounded-card bg-surface p-5 shadow-sm md:col-span-2">
           <p class="mb-2 text-sm font-semibold text-ink">Faturamento ao longo do tempo</p>
           <LineAreaChart
             :categories="serieTemporal.categorias"
@@ -136,7 +136,7 @@ const itemsCategoria = computed<RankingItem[]>(() =>
         </div>
       </div>
 
-      <div class="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-3">
+      <div class="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
         <div class="rounded-card bg-surface p-5 shadow-sm">
           <p class="mb-3 text-sm font-semibold text-ink">Top 5 Produtos</p>
           <EmptyState v-if="itemsProdutos.length === 0" title="Sem vendas de produtos no período" />

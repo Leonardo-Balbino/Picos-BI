@@ -60,20 +60,20 @@ const columns: DataTableColumn[] = [
     <PageHeader title="Clientes" subtitle="Análise detalhada de comportamento e retenção." />
     <GlobalFilters />
 
-    <div v-if="!vendasStore.carregado" class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+    <div v-if="!vendasStore.carregado" class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
       <SkeletonCard v-for="i in 4" :key="i" variant="kpi" />
     </div>
 
     <template v-else>
-      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
         <KpiCard label="Clientes Ativos" :value="formatNumber(agg.clientesAtivos.value)" icon="bi-people" />
         <KpiCard label="Novos Clientes" :value="formatNumber(agg.novosClientes.value)" icon="bi-person-plus" />
         <KpiCard label="Ticket Médio" :value="formatCurrency(ticketMedioCliente)" icon="bi-receipt" />
         <KpiCard label="Taxa de Recompra" :value="formatPercent(agg.taxaRecompra.value, true)" icon="bi-arrow-repeat" />
       </div>
 
-      <div class="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-3">
-        <div class="rounded-card bg-surface p-5 shadow-sm lg:col-span-2">
+      <div class="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+        <div class="rounded-card bg-surface p-5 shadow-sm md:col-span-2">
           <p class="mb-2 text-sm font-semibold text-ink">Novos vs. Recorrentes</p>
           <BarChart
             :categories="novosVsRecorrentes.categorias"
@@ -107,8 +107,8 @@ const columns: DataTableColumn[] = [
         </div>
       </div>
 
-      <div class="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-3">
-        <div class="rounded-card bg-surface p-5 shadow-sm lg:col-span-2">
+      <div class="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+        <div class="rounded-card bg-surface p-5 shadow-sm md:col-span-2">
           <div class="flex flex-wrap items-center justify-between gap-3">
             <p class="text-sm font-semibold text-ink">Lista de Clientes</p>
             <input

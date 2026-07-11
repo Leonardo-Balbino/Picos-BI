@@ -40,12 +40,12 @@ const columns: DataTableColumn[] = [
     <PageHeader title="Pagamentos" subtitle="Visão consolidada das transações e formas de recebimento." />
     <GlobalFilters />
 
-    <div v-if="!vendasStore.carregado" class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+    <div v-if="!vendasStore.carregado" class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
       <SkeletonCard v-for="i in 4" :key="i" variant="kpi" />
     </div>
 
     <template v-else>
-      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
         <div v-for="forma in formas" :key="forma.forma" class="rounded-card bg-surface p-5 shadow-sm">
           <div class="flex items-start justify-between">
             <span class="flex h-9 w-9 items-center justify-center rounded-btn bg-brand-100 text-brand-700">
@@ -60,7 +60,7 @@ const columns: DataTableColumn[] = [
         </div>
       </div>
 
-      <div class="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-3">
+      <div class="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
         <div class="rounded-card bg-surface p-5 shadow-sm">
           <p class="mb-2 text-sm font-semibold text-ink">Distribuição</p>
           <EmptyState v-if="totalGeral === 0" title="Sem transações no período" />
@@ -72,7 +72,7 @@ const columns: DataTableColumn[] = [
           />
         </div>
 
-        <div class="rounded-card bg-surface p-5 shadow-sm lg:col-span-1">
+        <div class="rounded-card bg-surface p-5 shadow-sm">
           <p class="mb-2 text-sm font-semibold text-ink">Evolução Diária</p>
           <BarChart
             :categories="evolucao.categorias"

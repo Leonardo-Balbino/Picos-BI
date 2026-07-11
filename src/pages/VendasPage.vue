@@ -71,12 +71,12 @@ const columns: DataTableColumn[] = [
     <PageHeader title="Vendas" subtitle="Visão detalhada de faturamento e volume." />
     <GlobalFilters />
 
-    <div v-if="!vendasStore.carregado" class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+    <div v-if="!vendasStore.carregado" class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
       <SkeletonCard v-for="i in 4" :key="i" variant="kpi" />
     </div>
 
     <template v-else>
-      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
         <KpiCard
           label="Faturamento"
           :value="formatCurrency(agg.kpisGerais.value.faturamento)"
@@ -103,8 +103,8 @@ const columns: DataTableColumn[] = [
         />
       </div>
 
-      <div class="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-3">
-        <div class="rounded-card bg-surface p-5 shadow-sm lg:col-span-2">
+      <div class="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+        <div class="rounded-card bg-surface p-5 shadow-sm md:col-span-2">
           <p class="text-sm font-semibold text-ink">Faturamento vs. Volume</p>
           <p class="mb-2 text-xs text-ink-muted">Evolução diária no período selecionado</p>
           <ComboChart

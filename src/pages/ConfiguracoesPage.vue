@@ -113,7 +113,7 @@ const fusoOptions = [{ value: 'America/Sao_Paulo', label: 'Brasília (GMT-3)' }]
           </span>
           <BaseButton variant="secondary" @click="alterarLogo">Alterar Logo</BaseButton>
         </div>
-        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
           <label class="flex flex-col gap-1">
             <span class="text-xs font-medium text-ink-muted">Nome do Comércio</span>
             <input v-model="nomeComercio" type="text" class="rounded-btn border border-surface-border px-3 py-2 text-sm outline-none focus:border-brand-500" />
@@ -127,7 +127,7 @@ const fusoOptions = [{ value: 'America/Sao_Paulo', label: 'Brasília (GMT-3)' }]
 
       <div class="rounded-card bg-surface p-5 shadow-sm">
         <p class="mb-4 border-b border-surface-border pb-3 text-sm font-semibold text-ink">Metas de Vendas</p>
-        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
           <label class="flex flex-col gap-1">
             <span class="text-xs font-medium text-ink-muted">Faturamento Mensal Global</span>
             <div class="flex items-center rounded-btn border border-surface-border focus-within:border-brand-500">
@@ -147,7 +147,7 @@ const fusoOptions = [{ value: 'America/Sao_Paulo', label: 'Brasília (GMT-3)' }]
 
       <div class="rounded-card bg-surface p-5 shadow-sm">
         <p class="mb-4 border-b border-surface-border pb-3 text-sm font-semibold text-ink">Preferências Regionais e Alertas</p>
-        <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
           <label class="flex flex-col gap-1">
             <span class="text-xs font-medium text-ink-muted">Período Padrão</span>
             <BaseSelect v-model="periodoPadrao" :options="periodoOptions" />
@@ -181,7 +181,7 @@ const fusoOptions = [{ value: 'America/Sao_Paulo', label: 'Brasília (GMT-3)' }]
       </div>
     </div>
 
-    <div class="fixed inset-x-0 bottom-0 z-20 flex justify-end gap-3 border-t border-surface-border bg-surface px-4 py-4 md:pl-16 lg:pl-[260px] lg:pr-8">
+    <div class="fixed inset-x-0 bottom-0 z-20 flex justify-end gap-3 border-t border-surface-border bg-surface px-4 py-4 md:pl-16 xl:pl-[260px] xl:pr-8">
       <BaseButton variant="secondary" @click="resetForm">Cancelar</BaseButton>
       <BaseButton variant="primary" @click="salvar">Salvar alterações</BaseButton>
     </div>

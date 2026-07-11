@@ -101,7 +101,7 @@ const columns: DataTableColumn[] = [
   <div>
     <PageHeader title="Relatórios" subtitle="Gere, visualize e exporte dados consolidados da operação." />
 
-    <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
+    <div class="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
       <div>
         <p class="mb-3 text-sm font-semibold text-ink">Catálogo de Relatórios</p>
         <div class="space-y-4">
@@ -128,7 +128,7 @@ const columns: DataTableColumn[] = [
         </div>
       </div>
 
-      <div class="rounded-card bg-surface p-5 shadow-sm lg:col-span-2">
+      <div class="rounded-card bg-surface p-5 shadow-sm md:col-span-2">
         <template v-if="selecionado === 'vendas-periodo'">
           <div class="flex items-center gap-3">
             <span class="flex h-10 w-10 items-center justify-center rounded-btn bg-green-100 text-green-700">

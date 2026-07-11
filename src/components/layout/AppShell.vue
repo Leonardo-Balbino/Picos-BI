@@ -13,7 +13,7 @@ useConfiguracoesStore().carregar()
 <template>
   <div class="min-h-screen bg-surface-bg">
     <AppSidebar />
-    <div class="flex min-h-screen flex-col md:pl-16 lg:pl-[260px]">
+    <div class="flex min-h-screen flex-col md:pl-16 xl:pl-[260px]">
       <AppTopbar />
       <main class="flex-1 p-4 sm:p-6 lg:p-8">
         <RouterView />
