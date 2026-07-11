@@ -35,6 +35,10 @@ export const baseChartOptions: ApexOptions = {
   colors: [...CHART_PALETTE],
   fill: { type: 'solid' },
   dataLabels: { enabled: false },
+  noData: {
+    text: 'Sem dados para o período selecionado',
+    style: { color: CHART_COLORS.inkMuted, fontFamily: 'Montserrat, sans-serif', fontSize: '13px' },
+  },
   stroke: { width: 2, curve: 'smooth' },
   grid: {
     borderColor: CHART_COLORS.border,

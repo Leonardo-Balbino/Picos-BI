@@ -51,7 +51,7 @@
     "categoriaId": "cat-informatica",
     "preco": 449,
     "custo": 265,
-    "estoque": 118
+    "estoque": 9
   },
   {
     "id": "p07",
@@ -78,7 +78,7 @@
     "categoriaId": "cat-acessorios",
     "preco": 349,
     "custo": 190,
-    "estoque": 95
+    "estoque": 8
   },
   {
     "id": "p10",
