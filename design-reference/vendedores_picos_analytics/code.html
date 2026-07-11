@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+
+<html class="light" lang="pt-BR"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Vendedores - PICOS Analytics</title>
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+        }
+        .icon-fill {
+            font-variation-settings: 'FILL' 1, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+        }
+        
+        /* Thin scrollbar for table */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #e3e2e5;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #ccc4cf;
+        }
+    </style>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-error": "#ffffff",
+                        "error": "#ba1a1a",
+                        "surface-container-low": "#f4f3f6",
+                        "primary": "#2f154c",
+                        "error-container": "#ffdad6",
+                        "surface": "#faf9fc",
+                        "on-secondary-container": "#007351",
+                        "surface-container-highest": "#e3e2e5",
+                        "inverse-surface": "#2f3033",
+                        "on-primary-fixed-variant": "#543b73",
+                        "outline": "#7b757f",
+                        "on-background": "#1a1c1e",
+                        "on-secondary-fixed": "#002114",
+                        "primary-fixed": "#eedbff",
+                        "primary-fixed-dim": "#d9bafb",
+                        "inverse-primary": "#d9bafb",
+                        "secondary-container": "#7ef9c5",
+                        "on-tertiary-fixed": "#291800",
+                        "on-surface-variant": "#4a454e",
+                        "on-surface": "#1a1c1e",
+                        "on-tertiary-fixed-variant": "#633f00",
+                        "surface-container-high": "#e8e8eb",
+                        "on-primary-container": "#b395d4",
+                        "tertiary": "#331e00",
+                        "surface-bright": "#faf9fc",
+                        "surface-variant": "#e3e2e5",
+                        "outline-variant": "#ccc4cf",
+                        "on-tertiary-container": "#d79426",
+                        "tertiary-container": "#4f3200",
+                        "surface-container": "#eeedf0",
+                        "secondary-fixed-dim": "#60dcaa",
+                        "on-tertiary": "#ffffff",
+                        "tertiary-fixed-dim": "#ffb952",
+                        "on-primary-fixed": "#270d44",
+                        "secondary": "#006c4c",
+                        "surface-tint": "#6d528c",
+                        "on-primary": "#ffffff",
+                        "inverse-on-surface": "#f1f0f3",
+                        "on-error-container": "#93000a",
+                        "secondary-fixed": "#7ef9c5",
+                        "on-secondary-fixed-variant": "#005138",
+                        "on-secondary": "#ffffff",
+                        "tertiary-fixed": "#ffddb4",
+                        "primary-container": "#452c63",
+                        "surface-container-lowest": "#ffffff",
+                        "background": "#faf9fc",
+                        "surface-dim": "#dadadc"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "md": "16px",
+                        "sidebar-width": "260px",
+                        "base": "8px",
+                        "sm": "8px",
+                        "gutter": "24px",
+                        "container-max": "1440px",
+                        "xl": "32px",
+                        "lg": "24px",
+                        "xs": "4px"
+                    },
+                    "fontFamily": {
+                        "body-lg": ["Montserrat"],
+                        "headline-md": ["Montserrat"],
+                        "headline-sm": ["Montserrat"],
+                        "body-md": ["Montserrat"],
+                        "display-lg": ["Montserrat"],
+                        "headline-lg": ["Montserrat"],
+                        "data-display": ["Montserrat"],
+                        "label-md": ["Montserrat"]
+                    },
+                    "fontSize": {
+                        "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                        "headline-sm": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                        "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                        "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "headline-lg": ["32px", {"lineHeight": "40px", "fontWeight": "700"}],
+                        "data-display": ["28px", {"lineHeight": "34px", "fontWeight": "700"}],
+                        "label-md": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}]
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-background text-on-surface font-body-md antialiased overflow-x-hidden">
+<!-- JSON Component: SideNavBar -->
+<nav class="bg-primary-container text-secondary font-body-md docked left-0 h-screen w-sidebar-width no-border shadow-none flat no shadows fixed top-0 bottom-0 z-50 flex flex-col justify-between">
+<div>
+<div class="h-16 flex items-center px-lg border-b border-white/5">
+<span class="font-headline-sm text-headline-sm font-bold text-on-primary">PICOS Analytics</span>
+</div>
+<div class="px-md py-sm">
+<span class="text-[10px] uppercase tracking-wider text-white/50 font-semibold ml-2">Business Intelligence</span>
+</div>
+<ul class="flex flex-col mt-4 px-3 gap-1">
+<!-- Visão Geral -->
+<li>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-white/70 hover:bg-white/5 hover:text-white transition-colors duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+                        Visão Geral
+                    </a>
+</li>
+<!-- Vendas -->
+<li>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-white/70 hover:bg-white/5 hover:text-white transition-colors duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined" data-icon="query_stats">query_stats</span>
+                        Vendas
+                    </a>
+</li>
+<!-- Produtos -->
+<li>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-white/70 hover:bg-white/5 hover:text-white transition-colors duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined" data-icon="inventory_2">inventory_2</span>
+                        Produtos
+                    </a>
+</li>
+<!-- Clientes -->
+<li>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-white/70 hover:bg-white/5 hover:text-white transition-colors duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined" data-icon="group">group</span>
+                        Clientes
+                    </a>
+</li>
+<!-- Vendedores (ACTIVE) -->
+<li>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-white border-l-4 border-secondary-fixed bg-white/10 transition-colors duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined" data-icon="badge">badge</span>
+                        Vendedores
+                    </a>
+</li>
+<!-- Pagamentos -->
+<li>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-white/70 hover:bg-white/5 hover:text-white transition-colors duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined" data-icon="payments">payments</span>
+                        Pagamentos
+                    </a>
+</li>
+<!-- Relatórios -->
+<li>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-white/70 hover:bg-white/5 hover:text-white transition-colors duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined" data-icon="description">description</span>
+                        Relatórios
+                    </a>
+</li>
+<!-- Configurações -->
+<li>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-white/70 hover:bg-white/5 hover:text-white transition-colors duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+                        Configurações
+                    </a>
+</li>
+</ul>
+</div>
+<div class="mb-lg px-3">
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-white/70 hover:bg-white/5 hover:text-white transition-colors duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined" data-icon="account_circle">account_circle</span>
+                Perfil
+            </a>
+</div>
+</nav>
+<!-- Main Content Wrapper -->
+<div class="ml-sidebar-width min-h-screen flex flex-col relative">
+<!-- JSON Component: TopNavBar -->
+<header class="bg-surface-container-lowest text-primary font-body-md docked full-width top-0 h-16 border-b border-outline-variant shadow-sm transition-all duration-200 fixed right-0 left-sidebar-width z-40 flex justify-between items-center px-lg">
+<div class="flex items-center">
+<!-- Search implicitly handled or omitted based on "on_left" logic if not fully specified, let's add a minimal search -->
+<div class="relative hidden md:block">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-sm">search</span>
+<input class="pl-10 pr-4 py-2 bg-surface-container rounded-full text-body-md text-on-surface border-none focus:ring-2 focus:ring-primary/20 outline-none w-64 transition-all" placeholder="Buscar..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-md">
+<button class="w-10 h-10 rounded-full flex items-center justify-center text-on-surface-variant hover:bg-surface-container-low transition-colors duration-200">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+<button class="w-10 h-10 rounded-full flex items-center justify-center text-on-surface-variant hover:bg-surface-container-low transition-colors duration-200">
+<span class="material-symbols-outlined" data-icon="apps">apps</span>
+</button>
+<div class="w-9 h-9 rounded-full overflow-hidden border border-outline-variant ml-2">
+<img alt="User Avatar" class="w-full h-full object-cover" data-alt="A professional corporate headshot of a business executive in a modern office environment. High key lighting, sharp focus, neutral background, realistic photo." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDpNhMA5CowabUWLdT2us4veRI3HRPsBwheo8zi6taL8kRQ1lo2flHV9C12PQ4Ji2ONrqR4Zj3N3TgcMAD03xboxBRSLtMLsrK0cdcWipxdpAdiUBGH7EWjxExy3suIAj0kuZZ4aOwE79pfU5wohfdoR435V7dkpXPezIN3DznF_2-hWDOc5d5gGXLBV1E0Pbyo7pK3eia7-w12ydfenmnkVxOvnsfhjIsXP8Rqv8kdmR0Bq-QRmmSaKO9DZ5PVNjAIuJ4qixPx6rD9"/>
+</div>
+</div>
+</header>
+<!-- JSON Component: TopAppBar (Filter Bar) -->
+<div class="sticky top-16 right-0 z-30 flex flex-wrap items-center gap-md p-md bg-surface-bright text-primary font-label-md w-full rounded-lg shadow-none border-b border-surface-container-highest">
+<div class="flex items-center gap-2 mr-auto">
+<span class="material-symbols-outlined text-on-surface-variant" data-icon="filter_list">filter_list</span>
+<span class="font-bold text-on-surface">Filtros Globais</span>
+<div class="h-4 w-px bg-outline-variant mx-2"></div>
+<!-- Mock Filters -->
+<button class="bg-secondary text-on-secondary rounded-lg px-3 py-1 scale-95 transition-transform">Este Mês</button>
+<button class="text-on-surface-variant border border-outline-variant rounded-lg px-3 py-1 hover:border-primary hover:text-primary scale-95 transition-transform">Trimestre</button>
+<button class="text-on-surface-variant border border-outline-variant rounded-lg px-3 py-1 hover:border-primary hover:text-primary scale-95 transition-transform">Ano</button>
+</div>
+<div class="flex gap-2">
+<button class="text-on-surface-variant border border-outline-variant rounded-lg px-3 py-1 hover:border-primary hover:text-primary scale-95 transition-transform flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]" data-icon="refresh">refresh</span> Atualizar
+                </button>
+<button class="bg-primary-container text-white rounded-lg px-4 py-1 hover:bg-primary-container/90 scale-95 transition-transform flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]" data-icon="download">download</span> Exportar
+                </button>
+</div>
+</div>
+<!-- Dashboard Canvas -->
+<main class="flex-1 p-gutter flex flex-col gap-gutter bg-background z-10">
+<!-- Header -->
+<div class="flex justify-between items-end">
+<div>
+<h1 class="font-headline-lg text-headline-lg text-primary">Vendedores</h1>
+<p class="text-on-surface-variant font-body-md mt-1">Visão geral do desempenho da equipe de vendas</p>
+</div>
+</div>
+<!-- KPIs -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-gutter">
+<!-- KPI 1 -->
+<div class="bg-surface-container-lowest p-md rounded-xl shadow-sm border border-surface-container-highest flex flex-col gap-2 relative overflow-hidden group hover:shadow-md transition-shadow">
+<div class="absolute -right-4 -top-4 w-16 h-16 bg-primary-fixed-dim/20 rounded-full blur-xl group-hover:bg-primary-fixed-dim/40 transition-colors"></div>
+<span class="text-on-surface-variant font-label-md flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px]">badge</span> Vendedores Ativos
+                    </span>
+<div class="font-data-display text-data-display text-primary mt-1">42</div>
+<div class="flex items-center gap-1 text-secondary font-label-md mt-auto">
+<span class="material-symbols-outlined text-[14px]">arrow_upward</span>
+<span>+2 novos este mês</span>
+</div>
+</div>
+<!-- KPI 2 -->
+<div class="bg-surface-container-lowest p-md rounded-xl shadow-sm border border-surface-container-highest flex flex-col gap-2 relative overflow-hidden group hover:shadow-md transition-shadow">
+<div class="absolute -right-4 -top-4 w-16 h-16 bg-secondary-fixed-dim/20 rounded-full blur-xl group-hover:bg-secondary-fixed-dim/40 transition-colors"></div>
+<span class="text-on-surface-variant font-label-md flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px]">account_balance_wallet</span> Faturamento Total
+                    </span>
+<div class="font-data-display text-data-display text-primary mt-1">R$ 1.2M</div>
+<div class="flex items-center gap-1 text-secondary font-label-md mt-auto">
+<span class="material-symbols-outlined text-[14px]">trending_up</span>
+<span>+15% vs mês anterior</span>
+</div>
+</div>
+<!-- KPI 3 -->
+<div class="bg-surface-container-lowest p-md rounded-xl shadow-sm border border-surface-container-highest flex flex-col gap-2 relative overflow-hidden group hover:shadow-md transition-shadow">
+<div class="absolute -right-4 -top-4 w-16 h-16 bg-primary-fixed-dim/20 rounded-full blur-xl group-hover:bg-primary-fixed-dim/40 transition-colors"></div>
+<span class="text-on-surface-variant font-label-md flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px]">receipt_long</span> Ticket Médio
+                    </span>
+<div class="font-data-display text-data-display text-primary mt-1">R$ 4.500</div>
+<div class="flex items-center gap-1 text-error font-label-md mt-auto">
+<span class="material-symbols-outlined text-[14px]">trending_down</span>
+<span>-2% vs mês anterior</span>
+</div>
+</div>
+<!-- KPI 4 -->
+<div class="bg-surface-container-lowest p-md rounded-xl shadow-sm border border-surface-container-highest flex flex-col gap-2 relative overflow-hidden group hover:shadow-md transition-shadow">
+<div class="absolute -right-4 -top-4 w-16 h-16 bg-tertiary-fixed-dim/20 rounded-full blur-xl group-hover:bg-tertiary-fixed-dim/40 transition-colors"></div>
+<span class="text-on-surface-variant font-label-md flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px]">workspace_premium</span> Melhor Vendedor
+                    </span>
+<div class="flex items-center gap-3 mt-1">
+<img class="w-10 h-10 rounded-full object-cover border border-surface-container" data-alt="Close up professional portrait of a confident female salesperson in business attire, smiling slightly, modern office background." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDhJ1XCSXUL02w9iDnBd-QSm0hLkBCNslrYChqWr8_rQz8RzDg9Yg0_1PSvmYyaWZgMYGMybW9jfTf8v-MrNbIkotbNV5CgFqVEDg-S02IAXdwp1WN8CXQeelWvmmzRU6NbkTKCZWr14I4sdap4ITxSDHNC4lRKZBUf459Oj9aKGul-l2cwXGh-WoeeihA1EhLgXTvW41Gv05gAWzy5KE3ZXoMqrqR1O0B8qqYuvBl8hpPJ4kgb47w0Fgn4izyz0jBhrkR07j6H8MIX"/>
+<div>
+<div class="font-headline-sm text-headline-sm text-primary leading-tight">Ana Silva</div>
+<div class="text-secondary font-label-md text-[10px]">R$ 150k gerados</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Bento Grid: Ranking & Chart -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-gutter">
+<!-- Ranking Box (Spans 1 col) -->
+<div class="lg:col-span-1 bg-surface-container-lowest rounded-xl shadow-sm border border-surface-container-highest flex flex-col">
+<div class="p-md border-b border-surface-container-highest flex justify-between items-center">
+<h2 class="font-headline-sm text-headline-sm text-primary">Top 5 Vendedores</h2>
+<button class="text-on-surface-variant hover:text-primary"><span class="material-symbols-outlined">more_vert</span></button>
+</div>
+<div class="flex-1 p-md flex flex-col gap-4">
+<!-- Rank 1 -->
+<div class="flex items-center gap-3 group">
+<div class="w-6 font-bold text-on-surface-variant text-center">1</div>
+<img class="w-8 h-8 rounded-full object-cover" data-alt="Portrait of Ana Silva, a professional businesswoman" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDsP9vZufDOWVzC2ZNcjw8Fck5dAm7etZAmIsV2dqqAn0IO3K3kjo5FNnx7JnS_tZZ_NM8rQ-fHJv0yv6VtaUaHpW5PKpzUpFBi5tQb8AQKCtjbdQt92nXXHtdD1NcBnmca5tdkSRx9ofnvKuOAIbm7XOtk718dsstWwUiMplh_PrCBx__Sed6i0H9u3aG9sctkeJ7IH3y4pmRFLEwDu6nGmN54HXfkUgJI06-uKwfCuEHp726ZZ-OuWoJrZoHcoDbP-85O5BIAGaGB"/>
+<div class="flex-1 min-w-0">
+<div class="font-bold text-on-surface truncate text-sm">Ana Silva</div>
+<div class="w-full bg-surface-container-highest rounded-full h-1.5 mt-1">
+<div class="bg-secondary h-1.5 rounded-full" style="width: 95%"></div>
+</div>
+</div>
+<div class="text-right">
+<div class="font-bold text-primary text-sm">R$ 150k</div>
+<div class="text-on-surface-variant text-[10px]">95% da meta</div>
+</div>
+</div>
+<!-- Rank 2 -->
+<div class="flex items-center gap-3 group">
+<div class="w-6 font-bold text-on-surface-variant text-center">2</div>
+<img class="w-8 h-8 rounded-full object-cover" data-alt="Portrait of Carlos Santos, a professional businessman" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCW5lcDhnVk-bjiJzIrwE-JRk1ZdndhdwTTquGYo3riXwEp-KzOiDdIr3dnzBXSw1dDCju6TnPycggltgjmmxFqAP-z8oXq2LLyzJN511lWaazUcy0MrhHL8eLHVRTmilcfAasdhRH6V90MbwmcAjFlGNKZtkinMLGVcw41kT6zArj4ZFPhFvP4DERh8bXNFrqi9oCjxxAPjFBuP2plW1aIeQ71OfkVod_cMqz6LEWOzDD4tlZr3prnHtnqhpvtRmGY-2JnW6-plAwZ"/>
+<div class="flex-1 min-w-0">
+<div class="font-bold text-on-surface truncate text-sm">Carlos Santos</div>
+<div class="w-full bg-surface-container-highest rounded-full h-1.5 mt-1">
+<div class="bg-secondary-fixed-dim h-1.5 rounded-full" style="width: 88%"></div>
+</div>
+</div>
+<div class="text-right">
+<div class="font-bold text-primary text-sm">R$ 120k</div>
+<div class="text-on-surface-variant text-[10px]">88% da meta</div>
+</div>
+</div>
+<!-- Rank 3 -->
+<div class="flex items-center gap-3 group">
+<div class="w-6 font-bold text-on-surface-variant text-center">3</div>
+<img class="w-8 h-8 rounded-full object-cover" data-alt="Portrait of Beatriz Costa, a professional businesswoman" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBFJgQxgTbbmnNqZ_8g_vAYW-ODi2weUxqewrpP0uaMOstCRUDUI5oVSz3MFt5cHHbAEDAZ-eCDkcjwSY7T6xZX9x_om8xQ7AJD7EaquHoQHM-0BeCRcgRBAeV9MMRHxFpzK3SNq4mNyW1MTGlg_vQfRoty-shhMak16foU1wWsCbo_1de238MbIk64qdkZoBdNsW3QmPFSgxWQ15SEhKjLZDnK52cbz4Iwih5WNbisxmGres3l91IsDwZioykDhtIqbIoZvCeTLiDN"/>
+<div class="flex-1 min-w-0">
+<div class="font-bold text-on-surface truncate text-sm">Beatriz Costa</div>
+<div class="w-full bg-surface-container-highest rounded-full h-1.5 mt-1">
+<div class="bg-primary-fixed-dim h-1.5 rounded-full" style="width: 82%"></div>
+</div>
+</div>
+<div class="text-right">
+<div class="font-bold text-primary text-sm">R$ 105k</div>
+<div class="text-on-surface-variant text-[10px]">82% da meta</div>
+</div>
+</div>
+<!-- Rank 4 -->
+<div class="flex items-center gap-3 group">
+<div class="w-6 font-bold text-on-surface-variant text-center">4</div>
+<img class="w-8 h-8 rounded-full object-cover" data-alt="Portrait of Marcos Lima, a professional businessman" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC988NjZP0H6rcYVeGa1ARxYAKZVNkZoQtDtS9kOXUVoJMh9nAK6Q_NSL7AX1C8PUupfdRbgHJ_-GpXpFIJQ_ya9uQorNfRTyiGHS5NRzLruFQZxBueKK0UjPYeERhWs2vBpU42_E1LUI7nGQtugYedWJN4BmsCBt22H8mqtugY8MSc8yVcQqKULcsKcj82oXEAEKQasNggSqI5o5gG7EvVstcmHyioxDE1PjUs5bpztMUYmLkGpjtfsegW7xJKo3sFMLK5-1z2TS3o"/>
+<div class="flex-1 min-w-0">
+<div class="font-bold text-on-surface truncate text-sm">Marcos Lima</div>
+<div class="w-full bg-surface-container-highest rounded-full h-1.5 mt-1">
+<div class="bg-outline h-1.5 rounded-full" style="width: 75%"></div>
+</div>
+</div>
+<div class="text-right">
+<div class="font-bold text-primary text-sm">R$ 90k</div>
+<div class="text-on-surface-variant text-[10px]">75% da meta</div>
+</div>
+</div>
+</div>
+<div class="p-3 border-t border-surface-container-highest text-center">
+<button class="text-primary font-label-md hover:underline">Ver todos os rankings</button>
+</div>
+</div>
+<!-- Chart Box (Spans 2 cols) -->
+<div class="lg:col-span-2 bg-surface-container-lowest rounded-xl shadow-sm border border-surface-container-highest flex flex-col p-md">
+<div class="flex justify-between items-center mb-6">
+<div>
+<h2 class="font-headline-sm text-headline-sm text-primary">Desempenho da Equipe</h2>
+<p class="text-on-surface-variant text-xs mt-1">Faturamento por período (R$ Milhares)</p>
+</div>
+<div class="flex gap-2">
+<div class="flex items-center gap-1 text-xs"><span class="w-3 h-3 rounded-sm bg-primary-container inline-block"></span> Atual</div>
+<div class="flex items-center gap-1 text-xs"><span class="w-3 h-3 rounded-sm bg-surface-container-highest inline-block"></span> Anterior</div>
+</div>
+</div>
+<!-- Mock Bar Chart -->
+<div class="flex-1 flex items-end justify-between gap-2 pt-8 relative">
+<!-- Y Axis lines -->
+<div class="absolute inset-0 flex flex-col justify-between pointer-events-none pb-6 z-0">
+<div class="w-full border-b border-surface-container-highest border-dashed"></div>
+<div class="w-full border-b border-surface-container-highest border-dashed"></div>
+<div class="w-full border-b border-surface-container-highest border-dashed"></div>
+<div class="w-full border-b border-surface-container-highest border-dashed"></div>
+</div>
+<!-- Bars -->
+<div class="flex-1 flex justify-center items-end gap-1 h-full z-10 pb-6 group">
+<div class="w-1/3 bg-surface-container-highest rounded-t-sm h-[40%] group-hover:opacity-80 transition-opacity"></div>
+<div class="w-1/3 bg-primary-container rounded-t-sm h-[55%] group-hover:opacity-80 transition-opacity relative">
+<div class="absolute -top-8 left-1/2 -translate-x-1/2 bg-inverse-surface text-inverse-on-surface text-[10px] py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">R$ 55k</div>
+</div>
+<span class="absolute bottom-0 text-[10px] text-on-surface-variant font-medium">Jan</span>
+</div>
+<div class="flex-1 flex justify-center items-end gap-1 h-full z-10 pb-6 group">
+<div class="w-1/3 bg-surface-container-highest rounded-t-sm h-[45%] group-hover:opacity-80 transition-opacity"></div>
+<div class="w-1/3 bg-primary-container rounded-t-sm h-[60%] group-hover:opacity-80 transition-opacity relative"></div>
+<span class="absolute bottom-0 text-[10px] text-on-surface-variant font-medium">Fev</span>
+</div>
+<div class="flex-1 flex justify-center items-end gap-1 h-full z-10 pb-6 group">
+<div class="w-1/3 bg-surface-container-highest rounded-t-sm h-[50%] group-hover:opacity-80 transition-opacity"></div>
+<div class="w-1/3 bg-primary-container rounded-t-sm h-[80%] group-hover:opacity-80 transition-opacity relative"></div>
+<span class="absolute bottom-0 text-[10px] text-on-surface-variant font-medium">Mar</span>
+</div>
+<div class="flex-1 flex justify-center items-end gap-1 h-full z-10 pb-6 group">
+<div class="w-1/3 bg-surface-container-highest rounded-t-sm h-[65%] group-hover:opacity-80 transition-opacity"></div>
+<div class="w-1/3 bg-primary-container rounded-t-sm h-[75%] group-hover:opacity-80 transition-opacity relative"></div>
+<span class="absolute bottom-0 text-[10px] text-on-surface-variant font-medium">Abr</span>
+</div>
+<div class="flex-1 flex justify-center items-end gap-1 h-full z-10 pb-6 group">
+<div class="w-1/3 bg-surface-container-highest rounded-t-sm h-[70%] group-hover:opacity-80 transition-opacity"></div>
+<div class="w-1/3 bg-primary-container rounded-t-sm h-[90%] group-hover:opacity-80 transition-opacity relative"></div>
+<span class="absolute bottom-0 text-[10px] text-on-surface-variant font-medium">Mai</span>
+</div>
+<div class="flex-1 flex justify-center items-end gap-1 h-full z-10 pb-6 group">
+<div class="w-1/3 bg-surface-container-highest rounded-t-sm h-[75%] group-hover:opacity-80 transition-opacity"></div>
+<div class="w-1/3 bg-secondary rounded-t-sm h-[100%] group-hover:opacity-80 transition-opacity relative shadow-[0_0_15px_rgba(0,108,76,0.3)]"></div>
+<span class="absolute bottom-0 text-[10px] text-on-surface-variant font-medium font-bold text-primary">Jun</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Detailed Table -->
+<div class="bg-surface-container-lowest rounded-xl shadow-sm border border-surface-container-highest overflow-hidden flex flex-col">
+<div class="p-md border-b border-surface-container-highest flex justify-between items-center bg-surface-bright">
+<h2 class="font-headline-sm text-headline-sm text-primary">Detalhamento por Vendedor</h2>
+<div class="flex gap-2">
+<div class="relative">
+<span class="material-symbols-outlined absolute left-2 top-1/2 -translate-y-1/2 text-on-surface-variant text-[16px]">search</span>
+<input class="pl-8 pr-3 py-1.5 text-sm border border-outline-variant rounded-md focus:ring-primary focus:border-primary w-48" placeholder="Buscar vendedor..." type="text"/>
+</div>
+</div>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse min-w-[800px]">
+<thead>
+<tr class="border-b border-surface-container-highest bg-surface/50 text-on-surface-variant font-label-md">
+<th class="p-3 pl-md font-semibold">Vendedor</th>
+<th class="p-3 font-semibold">Faturamento</th>
+<th class="p-3 font-semibold">Nº Vendas</th>
+<th class="p-3 font-semibold">Ticket Médio</th>
+<th class="p-3 font-semibold">Status Meta</th>
+<th class="p-3 pr-md text-right font-semibold">Ações</th>
+</tr>
+</thead>
+<tbody class="text-sm">
+<tr class="border-b border-surface-container-highest hover:bg-surface-container-lowest/50 transition-colors">
+<td class="p-3 pl-md">
+<div class="flex items-center gap-3">
+<img class="w-8 h-8 rounded-full object-cover" data-alt="Portrait of Ana Silva, a professional businesswoman" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAvXDoDBJbsiI4b7RrCs_eXP8VfsgeyV93UI1b7ki086emgVM0PPBGxpaecwdbWX8RL8VZosw9VHrN_C6gqZA6ja7hfy41O1JLXIq3nWc1G7u5dnfqILCEriAXFp4IQoGYSNybYTK3sHxEQtpp1DnP8X6eUZb86fPMLw3EpOrpWe1IBIo5TLHhMI9gbKtQIc_P5S6A8WLNjRUKzagzRGhEQF9O1d4NdEsF7vetPI-GllzKjUd5wCKcqOqZsfNADqOUshw1s5KW5c0nm"/>
+<div class="font-medium text-primary">Ana Silva</div>
+</div>
+</td>
+<td class="p-3 font-medium">R$ 150.000 <span class="material-symbols-outlined text-[14px] text-secondary align-middle ml-1">arrow_upward</span></td>
+<td class="p-3 text-on-surface-variant">32</td>
+<td class="p-3 text-on-surface-variant">R$ 4.687</td>
+<td class="p-3">
+<div class="flex items-center gap-2">
+<div class="w-24 bg-surface-container-highest rounded-full h-1.5">
+<div class="bg-secondary h-1.5 rounded-full" style="width: 95%"></div>
+</div>
+<span class="text-xs text-secondary font-medium">95%</span>
+</div>
+</td>
+<td class="p-3 pr-md text-right">
+<button class="text-outline hover:text-primary transition-colors"><span class="material-symbols-outlined text-[20px]">visibility</span></button>
+</td>
+</tr>
+<tr class="border-b border-surface-container-highest hover:bg-surface-container-lowest/50 transition-colors">
+<td class="p-3 pl-md">
+<div class="flex items-center gap-3">
+<img class="w-8 h-8 rounded-full object-cover" data-alt="Portrait of Carlos Santos, a professional businessman" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC9AdiwfjhMot5Cp7zcOueRdubgXmx9jry2ZECT5XaoIYcB0Mh6mKMzKQkOU6kQbKpl90dD_h1hvXXy5gMBoh8EQBZAahm-XxILs36xJIGkAwjm9YS16FtXZm8srT2nUWbve24MjAeKZMqeVMG4aiiHmCpJYnfe9bsth4aYDcZaCLl-ext_XWipkFjzDqCf0YI7xu50IBhrkAlyQc18MqQbnSpmDCZUralwaWmSFGZm5FZcVzX4VM7FVoJ82W0jjhO9WM2unATGQHFo"/>
+<div class="font-medium text-primary">Carlos Santos</div>
+</div>
+</td>
+<td class="p-3 font-medium">R$ 120.500 <span class="material-symbols-outlined text-[14px] text-secondary align-middle ml-1">arrow_upward</span></td>
+<td class="p-3 text-on-surface-variant">28</td>
+<td class="p-3 text-on-surface-variant">R$ 4.303</td>
+<td class="p-3">
+<div class="flex items-center gap-2">
+<div class="w-24 bg-surface-container-highest rounded-full h-1.5">
+<div class="bg-secondary-fixed-dim h-1.5 rounded-full" style="width: 88%"></div>
+</div>
+<span class="text-xs text-on-surface-variant font-medium">88%</span>
+</div>
+</td>
+<td class="p-3 pr-md text-right">
+<button class="text-outline hover:text-primary transition-colors"><span class="material-symbols-outlined text-[20px]">visibility</span></button>
+</td>
+</tr>
+<tr class="border-b border-surface-container-highest hover:bg-surface-container-lowest/50 transition-colors">
+<td class="p-3 pl-md">
+<div class="flex items-center gap-3">
+<img class="w-8 h-8 rounded-full object-cover" data-alt="Portrait of Beatriz Costa, a professional businesswoman" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAsIqQ1XhtJQoK1h9UZcTT2l7u4qVlwEtKxyCSb02ypVwecnOmvSY_lPh_R0_ogyYczZvKhx5OSJeVrsvRO3tio5IBBxvsJ7q6jhfrwFYmnKU0anhaxP2F9aANMIXVCM7uSpV5hUlmNIqYKB-z5zAkcGkYUqVfmqUNL01kllL94Fr1qzNCkfJP7HWXmXO-ItGk15hRDKDhkpDWuh1AXumF-Ot8r_ShJUX1c1F9vSCoN5t2qEzkiBtAlatZcvjP1KfVDFA87DnptJKUE"/>
+<div class="font-medium text-primary">Beatriz Costa</div>
+</div>
+</td>
+<td class="p-3 font-medium">R$ 105.200 <span class="material-symbols-outlined text-[14px] text-error align-middle ml-1">arrow_downward</span></td>
+<td class="p-3 text-on-surface-variant">20</td>
+<td class="p-3 text-on-surface-variant">R$ 5.260</td>
+<td class="p-3">
+<div class="flex items-center gap-2">
+<div class="w-24 bg-surface-container-highest rounded-full h-1.5">
+<div class="bg-primary-fixed-dim h-1.5 rounded-full" style="width: 82%"></div>
+</div>
+<span class="text-xs text-on-surface-variant font-medium">82%</span>
+</div>
+</td>
+<td class="p-3 pr-md text-right">
+<button class="text-outline hover:text-primary transition-colors"><span class="material-symbols-outlined text-[20px]">visibility</span></button>
+</td>
+</tr>
+<tr class="border-b border-surface-container-highest hover:bg-surface-container-lowest/50 transition-colors">
+<td class="p-3 pl-md">
+<div class="flex items-center gap-3">
+<img class="w-8 h-8 rounded-full object-cover" data-alt="Portrait of Marcos Lima, a professional businessman" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDYh1O38DjXgPtdPnHONy0FwQM-g_DYmHXbz5yrpgMjkVgr621bphv4xyyF933Qe4bcvX5Pa7GljH892OKySifCTnDwsElYWsqSIhNMxZ3AbzgdJrUZXnLjTBSpAe-shRlnZqARRa-dFeAlx6Uc1ToS02Gt8WWEvY4ja5z0zm9PBaCq6BfkNagN028eh-Q0EGWGNbehLxsOwXlxE3mA8p73PCU0S5IlaHWWG4_S2LW0gD47lgQ25Z8b-zyhQgRLnVVRmZhcSQqpPsP2"/>
+<div class="font-medium text-primary">Marcos Lima</div>
+</div>
+</td>
+<td class="p-3 font-medium">R$ 90.000 <span class="material-symbols-outlined text-[14px] text-outline align-middle ml-1">horizontal_rule</span></td>
+<td class="p-3 text-on-surface-variant">22</td>
+<td class="p-3 text-on-surface-variant">R$ 4.090</td>
+<td class="p-3">
+<div class="flex items-center gap-2">
+<div class="w-24 bg-surface-container-highest rounded-full h-1.5">
+<div class="bg-outline h-1.5 rounded-full" style="width: 75%"></div>
+</div>
+<span class="text-xs text-on-surface-variant font-medium">75%</span>
+</div>
+</td>
+<td class="p-3 pr-md text-right">
+<button class="text-outline hover:text-primary transition-colors"><span class="material-symbols-outlined text-[20px]">visibility</span></button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</main>
+</div>
+</body></html>
