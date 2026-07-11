@@ -82,6 +82,7 @@ export function variacaoPercentual(atual: number, anterior: number): number {
 }
 
 export interface VendaExibicao {
+  [key: string]: unknown
   id: string
   numero: string
   dataHora: string
@@ -181,6 +182,24 @@ export function useAggregations() {
       const chave = dia.toISOString().slice(0, 10)
       dias.push(formatShortDate(dia))
       valores.push(Math.round((mapa.get(chave) ?? 0) * 100) / 100)
+    }
+    return { categorias: dias, valores }
+  }
+
+  function serieTemporalNumeroVendas() {
+    const dias: string[] = []
+    const valores: number[] = []
+    const mapa = new Map<string, number>()
+    for (const v of vendasConcluidas.value) {
+      const chave = v.dataHora.slice(0, 10)
+      mapa.set(chave, (mapa.get(chave) ?? 0) + 1)
+    }
+    const totalDias = Math.round((intervalo.value.fim.getTime() - intervalo.value.inicio.getTime()) / 86400000) + 1
+    for (let i = 0; i < totalDias; i++) {
+      const dia = addDias(intervalo.value.inicio, i)
+      const chave = dia.toISOString().slice(0, 10)
+      dias.push(formatShortDate(dia))
+      valores.push(mapa.get(chave) ?? 0)
     }
     return { categorias: dias, valores }
   }
@@ -595,6 +614,7 @@ export function useAggregations() {
     kpisGerais,
     metaDoMes,
     serieTemporalFaturamento,
+    serieTemporalNumeroVendas,
     vendasPorDiaSemana,
     vendasPorHora,
     porFormaPagamento,
