@@ -2,7 +2,7 @@
 import { computed } from 'vue'
 import type { ApexOptions } from 'apexcharts'
 import VueApexCharts from 'vue3-apexcharts'
-import { mergeChartOptions } from './ChartTheme'
+import { mergeChartOptions, CHART_COLORS } from './ChartTheme'
 
 const props = withDefaults(
   defineProps<{
@@ -24,7 +24,19 @@ const options = computed<ApexOptions>(() =>
       style: { colors: ['#2E1F42'], fontFamily: 'Montserrat, sans-serif', fontWeight: 600 },
     },
     legend: { show: false },
-    xaxis: { categories: props.categories, labels: { formatter: props.valueFormatter } },
+    // `categories` são os nomes (strings) mostrados no eixo — nunca passar `valueFormatter`
+    // (formatador numérico) pro `xaxis.labels` aqui, senão o ApexCharts tenta formatar o
+    // nome do produto como número e mostra "NaN" no lugar do texto. O formatador numérico
+    // só entra em `yaxis`, que é o eixo de valores em barra horizontal.
+    xaxis: { categories: props.categories },
+    // `mergeChartOptions` substitui `yaxis` por inteiro (não faz merge raso, pra não quebrar
+    // o eixo duplo do ComboChart) — por isso repete aqui o estilo base em vez de herdar.
+    yaxis: {
+      labels: {
+        formatter: props.valueFormatter,
+        style: { colors: CHART_COLORS.inkMuted, fontSize: '12px' },
+      },
+    },
     tooltip: { y: { formatter: props.valueFormatter } },
   }),
 )

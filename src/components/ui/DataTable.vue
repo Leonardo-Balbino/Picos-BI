@@ -26,7 +26,33 @@ function alignClass(align: DataTableColumn['align']) {
 </script>
 
 <template>
-  <div class="overflow-x-auto">
+  <!-- <768px: uma linha vira um card empilhado (label à esquerda, valor à direita) — evita
+       cortar colunas em tabelas largas numa tela estreita, ao custo de perder o clique nos
+       cabeçalhos pra ordenar (a ordenação padrão da página já cobre o caso comum). -->
+  <div class="space-y-3 md:hidden">
+    <EmptyState v-if="rows.length === 0" :title="emptyTitle ?? 'Nenhum resultado encontrado'" :description="emptyDescription" />
+    <div
+      v-for="row in rows"
+      :key="rowKey(row)"
+      class="rounded-btn border border-surface-border bg-surface p-3 shadow-sm"
+    >
+      <div
+        v-for="col in columns"
+        :key="col.key"
+        class="flex items-start justify-between gap-3 py-1.5 first:pt-0 last:pb-0"
+      >
+        <span class="shrink-0 text-xs font-semibold uppercase tracking-wide text-ink-muted">{{ col.label }}</span>
+        <span class="min-w-0 text-right text-sm text-ink">
+          <slot :name="`cell-${col.key}`" :row="row">
+            {{ row[col.key] }}
+          </slot>
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <!-- >=768px: tabela tradicional com scroll horizontal se a soma das colunas passar da largura do container. -->
+  <div class="hidden overflow-x-auto md:block">
     <table class="w-full min-w-max border-collapse text-sm">
       <thead>
         <tr class="border-b border-surface-border">

@@ -3,12 +3,9 @@ import type { FiltrosState } from '@/types'
 
 export const useFiltersStore = defineStore('filters', {
   state: (): FiltrosState => ({
-    periodo: '30d',
+    periodo: 'semana',
     range: { inicio: '', fim: '' },
-    lojaId: 'todas',
-    categoriaId: 'todas',
-    formaPagamento: 'todas',
-    vendedorId: 'todos',
+    idCaixa: 'todos',
   }),
   actions: {
     setRangePersonalizado(inicio: string, fim: string) {

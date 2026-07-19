@@ -36,6 +36,7 @@ const router = createRouter({
         { path: 'pagamentos', name: 'pagamentos', component: () => import('@/pages/PagamentosPage.vue') },
         { path: 'relatorios', name: 'relatorios', component: () => import('@/pages/RelatoriosPage.vue') },
         { path: 'configuracoes', name: 'configuracoes', component: () => import('@/pages/ConfiguracoesPage.vue') },
+        { path: 'apps', name: 'apps', component: () => import('@/pages/AppsPage.vue') },
       ],
     },
     { path: '/:pathMatch(.*)*', redirect: '/visao-geral' },

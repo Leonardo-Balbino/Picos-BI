@@ -1,13 +1,21 @@
 <script setup lang="ts">
+import { watch } from 'vue'
 import { RouterView } from 'vue-router'
 import AppSidebar from './AppSidebar.vue'
 import AppTopbar from './AppTopbar.vue'
 import AppToast from '@/components/ui/AppToast.vue'
-import { useVendasStore } from '@/stores/useVendasStore'
-import { useConfiguracoesStore } from '@/stores/useConfiguracoesStore'
+import { useEmpresaStore } from '@/stores/useEmpresaStore'
+import { useDimensoesStore } from '@/stores/useDimensoesStore'
+import { useFiltersStore } from '@/stores/useFiltersStore'
+import { useRecarregarDados } from '@/composables/useRecarregarDados'
 
-useVendasStore().carregar()
-useConfiguracoesStore().carregar()
+useEmpresaStore().carregar()
+useDimensoesStore().carregar()
+
+const filters = useFiltersStore()
+const { carregar } = useRecarregarDados()
+
+watch(() => [filters.periodo, filters.range.inicio, filters.range.fim], carregar, { immediate: true })
 </script>
 
 <template>

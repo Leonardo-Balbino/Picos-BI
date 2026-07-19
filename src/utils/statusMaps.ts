@@ -1,32 +1,3 @@
-import type { FormaPagamento, StatusVenda } from '@/types'
-
-export const FORMA_PAGAMENTO_LABEL: Record<FormaPagamento, string> = {
-  dinheiro: 'Dinheiro',
-  pix: 'PIX',
-  credito: 'Cartão de Crédito',
-  debito: 'Cartão de Débito',
-}
-
-const STATUS_VENDA_LABEL: Record<StatusVenda, string> = {
-  concluida: 'Concluída',
-  cancelada: 'Cancelada',
-  estornada: 'Estornada',
-}
-
-const STATUS_VENDA_VARIANT: Record<StatusVenda, 'success' | 'danger' | 'neutral'> = {
-  concluida: 'success',
-  cancelada: 'danger',
-  estornada: 'neutral',
-}
-
-export function statusVendaLabel(status: StatusVenda): string {
-  return STATUS_VENDA_LABEL[status]
-}
-
-export function statusVendaVariant(status: StatusVenda): 'success' | 'danger' | 'neutral' {
-  return STATUS_VENDA_VARIANT[status]
-}
-
 export function iniciais(nome: string): string {
   return nome
     .split(' ')

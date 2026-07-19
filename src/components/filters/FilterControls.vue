@@ -6,6 +6,9 @@ import BaseButton from '@/components/ui/BaseButton.vue'
 import { useFiltersStore } from '@/stores/useFiltersStore'
 import { useUiStore } from '@/stores/useUiStore'
 import { useVendasStore } from '@/stores/useVendasStore'
+import { useExportStore } from '@/stores/useExportStore'
+import { useRecarregarDados } from '@/composables/useRecarregarDados'
+import { exportarCsv } from '@/utils/exportar'
 import type { PeriodoPreset } from '@/types'
 
 withDefaults(defineProps<{ stacked?: boolean }>(), { stacked: false })
@@ -13,34 +16,20 @@ withDefaults(defineProps<{ stacked?: boolean }>(), { stacked: false })
 const filters = useFiltersStore()
 const ui = useUiStore()
 const vendas = useVendasStore()
+const exportStore = useExportStore()
+const { forcarAtualizacao } = useRecarregarDados()
 
 const periodos: { value: PeriodoPreset; label: string }[] = [
-  { value: 'hoje', label: 'Hoje' },
-  { value: '7d', label: '7 Dias' },
-  { value: '30d', label: '30 Dias' },
+  { value: 'dia', label: 'Dia' },
+  { value: 'semana', label: 'Semana' },
   { value: 'mes', label: 'Mês' },
-  { value: 'trimestre', label: 'Trimestre' },
+  { value: 'semestre', label: 'Semestre' },
   { value: 'ano', label: 'Ano' },
 ]
 
-const lojaOptions = computed(() => [
-  { value: 'todas', label: 'Todas as Lojas' },
-  ...vendas.lojas.map((l) => ({ value: l, label: l })),
-])
-const categoriaOptions = computed(() => [
-  { value: 'todas', label: 'Todas as Categorias' },
-  ...vendas.categorias.map((c) => ({ value: c.id, label: c.nome })),
-])
-const formaPagamentoOptions = [
-  { value: 'todas', label: 'Todas as Formas' },
-  { value: 'dinheiro', label: 'Dinheiro' },
-  { value: 'pix', label: 'PIX' },
-  { value: 'credito', label: 'Cartão de Crédito' },
-  { value: 'debito', label: 'Cartão de Débito' },
-]
-const vendedorOptions = computed(() => [
-  { value: 'todos', label: 'Todos os Vendedores' },
-  ...vendas.vendedores.map((v) => ({ value: v.id, label: v.nome })),
+const pdvOptions = computed(() => [
+  { value: 'todos', label: 'Todos os PDVs' },
+  ...vendas.idsCaixa.map((id) => ({ value: id, label: `Caixa ${id}` })),
 ])
 
 function handleInicioChange(e: Event) {
@@ -50,9 +39,15 @@ function handleFimChange(e: Event) {
   filters.setRangePersonalizado(filters.range.inicio, (e.target as HTMLInputElement).value)
 }
 function handleExportar() {
-  ui.toast({ title: 'Exportação disponível em breve', variant: 'info' })
+  if (exportStore.linhas.length === 0) {
+    ui.toast({ title: 'Nada para exportar nesta tela', variant: 'info' })
+    return
+  }
+  exportarCsv(exportStore.nomeArquivo, exportStore.colunas, exportStore.linhas)
+  ui.toast({ title: 'CSV exportado', variant: 'success' })
 }
-function handleAtualizar() {
+async function handleAtualizar() {
+  await forcarAtualizacao()
   ui.toast({ title: 'Dados atualizados', variant: 'success' })
 }
 </script>
@@ -62,10 +57,7 @@ function handleAtualizar() {
     <ToggleGroupRoot
       v-model="filters.periodo"
       type="single"
-      :class="[
-        'flex flex-wrap gap-1 rounded-btn bg-surface-bg p-1',
-        stacked && 'w-full',
-      ]"
+      :class="['flex flex-wrap gap-1 rounded-btn bg-surface-bg p-1', stacked && 'w-full']"
     >
       <ToggleGroupItem
         v-for="p in periodos"
@@ -113,10 +105,7 @@ function handleAtualizar() {
       </PopoverRoot>
     </ToggleGroupRoot>
 
-    <BaseSelect v-model="filters.lojaId" :options="lojaOptions" :class="stacked && 'w-full'" />
-    <BaseSelect v-model="filters.categoriaId" :options="categoriaOptions" :class="stacked && 'w-full'" />
-    <BaseSelect v-model="filters.formaPagamento" :options="formaPagamentoOptions" :class="stacked && 'w-full'" />
-    <BaseSelect v-model="filters.vendedorId" :options="vendedorOptions" :class="stacked && 'w-full'" />
+    <BaseSelect v-model="filters.idCaixa" :options="pdvOptions" :class="stacked && 'w-full'" />
 
     <div :class="stacked ? 'flex gap-2' : 'ml-auto flex items-center gap-2'">
       <BaseButton variant="secondary" icon="bi-arrow-clockwise" @click="handleAtualizar">Atualizar</BaseButton>

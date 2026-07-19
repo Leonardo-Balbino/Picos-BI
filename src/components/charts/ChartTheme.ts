@@ -30,7 +30,11 @@ export const baseChartOptions: ApexOptions = {
     toolbar: { show: false },
     zoom: { enabled: false },
     foreColor: CHART_COLORS.inkMuted,
-    animations: { enabled: true, speed: 300 },
+    // `dynamicAnimation` desligada: a animação de transição entre dois conjuntos de dados
+    // (ex.: ao trocar o período) é o que mais pesa durante um re-render, não a animação de
+    // entrada inicial — desligar só essa reduz o travamento perceptível sem tirar a
+    // suavidade da primeira montagem do gráfico.
+    animations: { enabled: true, speed: 300, dynamicAnimation: { enabled: false } },
   },
   colors: [...CHART_PALETTE],
   fill: { type: 'solid' },
@@ -55,13 +59,41 @@ export const baseChartOptions: ApexOptions = {
     style: { fontFamily: 'Montserrat, sans-serif' },
   },
   xaxis: {
-    labels: { style: { colors: CHART_COLORS.inkMuted, fontSize: '12px' } },
+    labels: {
+      style: { colors: CHART_COLORS.inkMuted, fontSize: '12px' },
+      hideOverlappingLabels: true,
+      trim: true,
+    },
     axisBorder: { color: CHART_COLORS.border },
     axisTicks: { color: CHART_COLORS.border },
   },
   yaxis: {
     labels: { style: { colors: CHART_COLORS.inkMuted, fontSize: '12px' } },
   },
+  // Abaixo de 480px (celulares na vertical), reduz fonte dos eixos/dataLabels e inclina os
+  // ticks do eixo X pra não sobrepor — o ApexCharts aplica isso automaticamente conforme o
+  // container reflow, sem precisar de listener de resize manual.
+  responsive: [
+    {
+      breakpoint: 480,
+      options: {
+        legend: { position: 'bottom' },
+        xaxis: {
+          labels: {
+            style: { fontSize: '10px' },
+            rotate: -45,
+            rotateAlways: false,
+            hideOverlappingLabels: true,
+            trim: true,
+          },
+        },
+        yaxis: {
+          labels: { style: { fontSize: '10px' } },
+        },
+        dataLabels: { style: { fontSize: '9px' } },
+      },
+    },
+  ],
 }
 
 /** Merge raso de opções específicas de um gráfico sobre a base comum. */

@@ -7,7 +7,7 @@ const ui = useUiStore()
 </script>
 
 <template>
-  <div class="mb-6 rounded-card bg-surface p-4 shadow-sm sm:p-5">
+  <div class="no-print mb-6 rounded-card bg-surface p-4 shadow-sm sm:p-5">
     <div class="flex items-center justify-between gap-3 md:hidden">
       <div class="flex items-center gap-2 text-sm font-semibold text-ink">
         <i class="bi bi-funnel" />

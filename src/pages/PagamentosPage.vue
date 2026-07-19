@@ -1,30 +1,46 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, watchEffect } from 'vue'
 import PageHeader from '@/components/layout/PageHeader.vue'
 import GlobalFilters from '@/components/filters/GlobalFilters.vue'
 import DataTable, { type DataTableColumn } from '@/components/ui/DataTable.vue'
-import SkeletonCard from '@/components/ui/SkeletonCard.vue'
 import EmptyState from '@/components/ui/EmptyState.vue'
-import DonutChart from '@/components/charts/DonutChart.vue'
-import BarChart from '@/components/charts/BarChart.vue'
+import SkeletonCard from '@/components/ui/SkeletonCard.vue'
+import BaseButton from '@/components/ui/BaseButton.vue'
+import { DonutChart } from '@/components/charts/lazy'
 import { useVendasStore } from '@/stores/useVendasStore'
+import { useExportStore } from '@/stores/useExportStore'
 import { useAggregations, type FormaPagamentoLinha } from '@/composables/useAggregations'
+import { useRecarregarDados } from '@/composables/useRecarregarDados'
 import { formatCurrency, formatCompact, formatPercent, formatNumber } from '@/utils/formatters'
 
-const TAXA_ESTIMADA: Record<string, number> = { credito: 0.025, debito: 0.014, pix: 0, dinheiro: 0 }
-const ICONES: Record<string, string> = { credito: 'bi-credit-card', pix: 'bi-qr-code', debito: 'bi-credit-card-2-back', dinheiro: 'bi-cash-coin' }
-
 const vendasStore = useVendasStore()
+const exportStore = useExportStore()
 const agg = useAggregations()
+const { forcarAtualizacao } = useRecarregarDados()
 
 const formas = computed<FormaPagamentoLinha[]>(() => agg.porFormaPagamento())
-const evolucao = computed(() => agg.evolucaoDiariaPorFormaPagamento())
-
-const custoCartao = computed(() =>
-  formas.value.reduce((acc, f) => acc + f.valor * (TAXA_ESTIMADA[f.forma] ?? 0), 0),
-)
 const totalGeral = computed(() => formas.value.reduce((acc, f) => acc + f.valor, 0))
 const totalTransacoes = computed(() => formas.value.reduce((acc, f) => acc + f.nTransacoes, 0))
+
+watchEffect(() => {
+  exportStore.registrar(
+    'pagamentos',
+    [
+      { chave: 'label', rotulo: 'Forma' },
+      { chave: 'nTransacoes', rotulo: 'Nº Transações' },
+      { chave: 'valor', rotulo: 'Valor Total' },
+      { chave: 'ticketMedio', rotulo: 'Ticket Médio' },
+      { chave: 'percentual', rotulo: '% Faturamento' },
+    ],
+    formas.value.map((f) => ({
+      label: f.label,
+      nTransacoes: formatNumber(f.nTransacoes),
+      valor: formatCurrency(f.valor),
+      ticketMedio: formatCurrency(f.ticketMedio),
+      percentual: formatPercent(f.percentual, true),
+    })),
+  )
+})
 
 const columns: DataTableColumn[] = [
   { key: 'label', label: 'Forma' },
@@ -37,70 +53,47 @@ const columns: DataTableColumn[] = [
 
 <template>
   <div>
-    <PageHeader title="Pagamentos" subtitle="Visão consolidada das transações e formas de recebimento." />
+    <PageHeader title="Pagamentos" subtitle="Distribuição das vendas por forma de recebimento." />
     <GlobalFilters />
 
-    <div v-if="!vendasStore.carregado" class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
-      <SkeletonCard v-for="i in 4" :key="i" variant="kpi" />
+    <div v-if="vendasStore.carregando" class="grid grid-cols-1 gap-4 md:grid-cols-2">
+      <SkeletonCard variant="chart" />
+      <SkeletonCard variant="chart" />
     </div>
 
-    <template v-else>
-      <div class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <div v-for="forma in formas" :key="forma.forma" class="rounded-card bg-surface p-5 shadow-sm">
-          <div class="flex items-start justify-between">
-            <span class="flex h-9 w-9 items-center justify-center rounded-btn bg-brand-100 text-brand-700">
-              <i class="bi" :class="ICONES[forma.forma]" />
-            </span>
-            <span class="rounded-full bg-surface-bg px-2 py-0.5 text-xs font-semibold text-ink-muted">
-              {{ formatPercent(forma.percentual, true) }}
-            </span>
-          </div>
-          <p class="mt-3 text-xs font-semibold uppercase tracking-wide text-ink-muted">{{ forma.label }}</p>
-          <p class="tabular-nums text-2xl font-bold text-ink">{{ formatCompact(forma.valor) }}</p>
-        </div>
-      </div>
+    <EmptyState
+      v-else-if="vendasStore.erro"
+      icon="bi-exclamation-triangle"
+      title="Não foi possível carregar os pagamentos do período"
+      :description="vendasStore.erro"
+    >
+      <BaseButton variant="secondary" class="mt-3" @click="forcarAtualizacao">Tentar novamente</BaseButton>
+    </EmptyState>
 
-      <div class="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+    <template v-else>
+      <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
         <div class="rounded-card bg-surface p-5 shadow-sm">
           <p class="mb-2 text-sm font-semibold text-ink">Distribuição</p>
           <EmptyState v-if="totalGeral === 0" title="Sem transações no período" />
-          <DonutChart
-            v-else
-            :labels="formas.map((f) => f.label)"
-            :series="formas.map((f) => f.valor)"
-            :value-formatter="formatCompact"
-          />
+          <DonutChart v-else :labels="formas.map((f) => f.label)" :series="formas.map((f) => f.valor)" :value-formatter="formatCompact" />
         </div>
 
         <div class="rounded-card bg-surface p-5 shadow-sm">
-          <p class="mb-2 text-sm font-semibold text-ink">Evolução Diária</p>
-          <BarChart
-            :categories="evolucao.categorias"
-            :series="evolucao.series"
-            stacked
-            :value-formatter="formatCompact"
-          />
-        </div>
-
-        <div class="rounded-card bg-brand-700 p-5 text-white shadow-sm">
-          <p class="text-sm font-semibold">Taxas de Cartão</p>
-          <p class="mb-4 text-xs text-white/70">Custo estimado retido pelas adquirentes no período selecionado.</p>
-          <div class="rounded-btn bg-white/10 p-4">
-            <p class="text-xs uppercase tracking-wide text-white/60">Custo Total</p>
-            <p class="tabular-nums text-2xl font-bold">{{ formatCurrency(custoCartao) }}</p>
-            <p class="mt-1 text-xs text-white/60">
-              {{ formatPercent(totalGeral ? custoCartao / totalGeral : 0, true) }} do faturamento em cartão
-            </p>
+          <p class="mb-3 text-sm font-semibold text-ink">Resumo</p>
+          <div class="space-y-3">
+            <div v-for="f in formas" :key="f.idPagamento" class="flex items-center justify-between gap-3 text-sm">
+              <span class="text-ink-muted">{{ f.label }}</span>
+              <span class="tabular-nums font-semibold text-ink">{{ formatCompact(f.valor) }} · {{ formatPercent(f.percentual, true) }}</span>
+            </div>
+            <EmptyState v-if="formas.length === 0" title="Sem transações no período" />
           </div>
         </div>
       </div>
 
       <div class="mt-6 rounded-card bg-surface p-5 shadow-sm">
-        <div class="flex items-center justify-between">
-          <p class="text-sm font-semibold text-ink">Detalhamento por Forma</p>
-        </div>
+        <p class="text-sm font-semibold text-ink">Detalhamento por Forma</p>
         <div class="mt-4">
-          <DataTable :columns="columns" :rows="formas" :row-key="(r) => r.forma" empty-title="Sem transações no período">
+          <DataTable :columns="columns" :rows="formas" :row-key="(r) => r.idPagamento" empty-title="Sem transações no período">
             <template #cell-valor="{ row }">{{ formatCurrency(row.valor) }}</template>
             <template #cell-ticketMedio="{ row }">{{ formatCurrency(row.ticketMedio) }}</template>
             <template #cell-percentual="{ row }">{{ formatPercent(row.percentual, true) }}</template>

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useRoute, useRouter, RouterLink } from 'vue-router'
-import { DialogRoot, DialogPortal, DialogOverlay, DialogContent, DialogTitle } from 'reka-ui'
+import { DialogRoot, DialogPortal, DialogOverlay, DialogContent, DialogTitle, DialogClose } from 'reka-ui'
 import BrandLogo from '@/components/ui/BrandLogo.vue'
 import { useAuthStore } from '@/stores/useAuthStore'
 import { useUiStore } from '@/stores/useUiStore'
@@ -20,6 +20,7 @@ const navItems = [
   { to: '/pagamentos', label: 'Pagamentos', icon: 'bi-credit-card-fill' },
   { to: '/relatorios', label: 'Relatórios', icon: 'bi-file-earmark-bar-graph-fill' },
   { to: '/configuracoes', label: 'Configurações', icon: 'bi-gear-fill' },
+  { to: '/apps', label: 'Apps', icon: 'bi-grid-3x3-gap' },
 ]
 
 const initials = computed(() =>
@@ -44,7 +45,7 @@ function handleLogout() {
 
 <template>
   <aside
-    class="fixed inset-y-0 left-0 z-30 hidden w-16 flex-col bg-brand-900 md:flex xl:w-[260px]"
+    class="no-print fixed inset-y-0 left-0 z-30 hidden w-16 flex-col bg-brand-900 md:flex xl:w-[260px]"
   >
     <div class="flex items-center gap-3 px-4 py-5 xl:px-6">
       <BrandLogo :size="36" class="shrink-0" />
@@ -86,12 +87,20 @@ function handleLogout() {
         class="fixed inset-y-0 left-0 z-50 flex w-64 flex-col bg-brand-900 focus:outline-none md:hidden"
       >
         <DialogTitle class="sr-only">Menu de navegação</DialogTitle>
-        <div class="flex items-center gap-3 px-5 py-5">
-          <BrandLogo :size="36" class="shrink-0" />
-          <div class="min-w-0">
-            <p class="truncate text-base font-bold leading-tight text-white">PICOS Analytics</p>
-            <p class="truncate text-[11px] font-medium text-white/50">Business Intelligence</p>
+        <div class="flex items-center justify-between gap-3 px-5 py-5">
+          <div class="flex min-w-0 items-center gap-3">
+            <BrandLogo :size="36" class="shrink-0" />
+            <div class="min-w-0">
+              <p class="truncate text-base font-bold leading-tight text-white">PICOS Analytics</p>
+              <p class="truncate text-[11px] font-medium text-white/50">Business Intelligence</p>
+            </div>
           </div>
+          <DialogClose
+            class="flex min-h-11 min-w-11 shrink-0 items-center justify-center text-white/70 hover:text-white"
+            aria-label="Fechar menu"
+          >
+            <i class="bi bi-x-lg text-lg" />
+          </DialogClose>
         </div>
 
         <nav class="mt-2 flex-1 space-y-1 px-3">
