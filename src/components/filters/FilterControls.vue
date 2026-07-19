@@ -3,6 +3,8 @@ import { computed } from 'vue'
 import { ToggleGroupRoot, ToggleGroupItem, PopoverRoot, PopoverTrigger, PopoverPortal, PopoverContent } from 'reka-ui'
 import BaseSelect from '@/components/ui/BaseSelect.vue'
 import BaseButton from '@/components/ui/BaseButton.vue'
+import PeriodRangeCalendar from '@/components/filters/PeriodRangeCalendar.vue'
+import { formatDate } from '@/utils/formatters'
 import { useFiltersStore } from '@/stores/useFiltersStore'
 import { useUiStore } from '@/stores/useUiStore'
 import { useVendasStore } from '@/stores/useVendasStore'
@@ -32,11 +34,8 @@ const pdvOptions = computed(() => [
   ...vendas.idsCaixa.map((id) => ({ value: id, label: `Caixa ${id}` })),
 ])
 
-function handleInicioChange(e: Event) {
-  filters.setRangePersonalizado((e.target as HTMLInputElement).value, filters.range.fim)
-}
-function handleFimChange(e: Event) {
-  filters.setRangePersonalizado(filters.range.inicio, (e.target as HTMLInputElement).value)
+function handleRangeChange(inicio: string, fim: string) {
+  filters.setRangePersonalizado(inicio, fim)
 }
 function handleExportar() {
   if (exportStore.linhas.length === 0) {
@@ -77,29 +76,16 @@ async function handleAtualizar() {
         </PopoverTrigger>
         <PopoverPortal>
           <PopoverContent
-            class="z-50 w-56 rounded-card border border-surface-border bg-surface p-4 shadow-lg"
+            class="z-50 w-72 rounded-card border border-surface-border bg-surface p-4 shadow-lg"
             :side-offset="8"
           >
-            <div class="flex flex-col gap-3 text-sm">
-              <label class="flex flex-col gap-1">
-                <span class="text-xs text-ink-muted">Início</span>
-                <input
-                  type="date"
-                  class="rounded-btn border border-surface-border px-2 py-1.5 text-sm"
-                  :value="filters.range.inicio"
-                  @change="handleInicioChange"
-                />
-              </label>
-              <label class="flex flex-col gap-1">
-                <span class="text-xs text-ink-muted">Fim</span>
-                <input
-                  type="date"
-                  class="rounded-btn border border-surface-border px-2 py-1.5 text-sm"
-                  :value="filters.range.fim"
-                  @change="handleFimChange"
-                />
-              </label>
-            </div>
+            <p class="mb-2 text-xs text-ink-muted">
+              <template v-if="filters.range.inicio && filters.range.fim">
+                {{ formatDate(filters.range.inicio) }} — {{ formatDate(filters.range.fim) }}
+              </template>
+              <template v-else>Selecione o início e o fim do período</template>
+            </p>
+            <PeriodRangeCalendar :inicio="filters.range.inicio" :fim="filters.range.fim" @change="handleRangeChange" />
           </PopoverContent>
         </PopoverPortal>
       </PopoverRoot>
