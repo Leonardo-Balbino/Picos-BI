@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
+import Antigravity from '@/components/login/Antigravity.vue'
 import BrandLogo from '@/components/ui/BrandLogo.vue'
 import { useAuthStore } from '@/stores/useAuthStore'
 import { useGoogleIdentity, type DadosGoogle } from '@/composables/useGoogleIdentity'
@@ -26,19 +27,29 @@ const { erro: erroGoogle, renderizarBotao } = useGoogleIdentity(handleCredencial
 onMounted(() => {
   if (botaoRef.value) renderizarBotao(botaoRef.value)
 })
-
-const patternSvg = `<svg xmlns='http://www.w3.org/2000/svg' width='40' height='40'><rect x='13' y='13' width='14' height='14' fill='none' stroke='white' stroke-width='1' opacity='0.15' transform='rotate(45 20 20)'/></svg>`
-const patternUrl = `url("data:image/svg+xml,${encodeURIComponent(patternSvg)}")`
 </script>
 
 <template>
   <div class="flex min-h-screen flex-col bg-surface md:flex-row">
     <div
       class="relative flex flex-col justify-between overflow-hidden bg-brand-700 px-8 py-10 sm:px-12 md:w-1/2 md:px-16 md:py-16"
-      :style="{ backgroundImage: patternUrl }"
     >
-      <div />
-      <div>
+      <div class="absolute inset-0">
+        <Antigravity
+          :count="260"
+          :magnet-radius="6"
+          :ring-radius="7"
+          :wave-speed="0.4"
+          :wave-amplitude="1"
+          :particle-size="0.7"
+          :lerp-speed="0.05"
+          color="#62D26F"
+          :auto-animate="true"
+          :particle-variance="1"
+        />
+      </div>
+      <div class="relative" />
+      <div class="relative">
         <div class="mb-8 inline-flex rounded-card bg-white p-4 shadow-lg">
           <BrandLogo variant="color" :size="64" />
         </div>
@@ -49,7 +60,7 @@ const patternUrl = `url("data:image/svg+xml,${encodeURIComponent(patternSvg)}")`
           Análises avançadas e decisões baseadas em dados reais.
         </p>
       </div>
-      <div />
+      <div class="relative" />
     </div>
 
     <div class="flex flex-1 flex-col justify-between px-8 py-10 sm:px-12 md:px-16 md:py-16">

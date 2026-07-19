@@ -24,18 +24,27 @@ const options = computed<ApexOptions>(() =>
       style: { colors: ['#2E1F42'], fontFamily: 'Montserrat, sans-serif', fontWeight: 600 },
     },
     legend: { show: false },
-    // `categories` são os nomes (strings) mostrados no eixo — nunca passar `valueFormatter`
-    // (formatador numérico) pro `xaxis.labels` aqui, senão o ApexCharts tenta formatar o
-    // nome do produto como número e mostra "NaN" no lugar do texto. O formatador numérico
-    // só entra em `yaxis`, que é o eixo de valores em barra horizontal.
-    xaxis: { categories: props.categories },
-    // `mergeChartOptions` substitui `yaxis` por inteiro (não faz merge raso, pra não quebrar
-    // o eixo duplo do ComboChart) — por isso repete aqui o estilo base em vez de herdar.
-    yaxis: {
+    // Com `horizontal: true` o ApexCharts inverte a quem cada eixo delega a formatação:
+    // `xaxis.labels.formatter` formata os ticks numéricos (eixo embaixo), enquanto
+    // `yaxis.labels.formatter` formata os nomes das categorias (eixo à esquerda). Passar o
+    // `valueFormatter` (formatador de moeda) pro `yaxis` faz o ApexCharts tentar formatar o
+    // nome do PDV/produto como número e mostrar "R$ NaN" no lugar do texto.
+    // `mergeChartOptions` faz merge raso de `xaxis` — como `labels` é substituído por inteiro,
+    // repetimos aqui o estilo base em vez de herdar.
+    xaxis: {
+      categories: props.categories,
       labels: {
         formatter: props.valueFormatter,
         style: { colors: CHART_COLORS.inkMuted, fontSize: '12px' },
+        hideOverlappingLabels: true,
+        trim: true,
       },
+    },
+    // `yaxis` é substituído por inteiro (não faz merge raso, pra não quebrar o eixo duplo do
+    // ComboChart) — aqui só o estilo, sem formatter numérico (os valores são os nomes das
+    // categorias, não números).
+    yaxis: {
+      labels: { style: { colors: CHART_COLORS.inkMuted, fontSize: '12px' } },
     },
     tooltip: { y: { formatter: props.valueFormatter } },
   }),
