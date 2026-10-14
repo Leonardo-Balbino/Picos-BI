@@ -20,13 +20,32 @@ Foi criada uma organização independente, uma loja e usuários com perfil `FRAN
 
 ---
 
-## Status da Chave API no Meu ERP Online
+## Status da Chave API no Meu ERP Online e Sincronização Concluída
 
-A chave API fornecida pelo usuário (`Yy9sWDhu...`) foi testada diretamente contra a API Pública do Meu ERP Online (`https://api.meuerponline.com.br/publica/api/empresa/v1`):
+A chave API fornecida pelo usuário (`Yy9sWDhu...`) foi liberada no Meu ERP Online e respondeu `HTTP 200` com os dados oficiais:
 
-- **Resposta da API upstream**: `HTTP 401` com o corpo `"API Inativa."`.
-- **Diagnóstico**: Quando uma chave é inválida/inexistente, o Meu ERP Online retorna `"Código de integração inválido."`. Portanto, a chave fornecida é **autêntica e reconhecida pelo ERP**, porém o recurso de integração via API Pública está atualmente marcado como **Inativo** dentro do painel do Meu ERP Online da empresa YASMIN ATACADO (ou aguardando liberação no plano/módulo da empresa).
-- **Comportamento automático**: A loja já foi cadastrada como ativa com seu token no backend. A rotina automática do backend (ciclo intradiário a cada 10 minutos e reconciliação diária às 03:00) já inclui a loja nas tentativas. Assim que a opção de API Pública for ativada no painel do Meu ERP Online, a próxima sincronização importará vendas, produtos, clientes, estoque e contas automaticamente.
+- **Razão Social:** YASMIN ATACADO
+- **Nome Fantasia:** YASMIN ATACADO
+- **CNPJ/CPF:** `03680340389`
+- **Município / UF:** PAULISTANA / PI
+- **E-mail:** `yasminatacado@picoserp.com.br`
+- **CRT:** MEI (Microempreendedor Individual)
+- **Status:** Ativo
+
+A sincronização inicial de todas as entidades e da janela recente foi executada com **100% de sucesso (todas as 28 tarefas aprovadas)**:
+
+| Conjunto | Registros Importados |
+|---|---:|
+| Produtos cadastrados no ERP | 15 |
+| Clientes / Fornecedores | 1 |
+| Formas de pagamento | 5 |
+| Saldos de estoque | 12 |
+| Empresa | 1 |
+| Documentos de movimentação armazenados | 25 |
+| Contas a receber / pagar pendentes | 0 |
+
+O ciclo de atualização automática de 10 minutos agora opera com `status: SUCESSO` em todas as unidades (`Açaí Senses - Inhuma`, `Água de Coco e Gelo Poliana` e `YASMIN ATACADO`).
+
 
 ---
 
