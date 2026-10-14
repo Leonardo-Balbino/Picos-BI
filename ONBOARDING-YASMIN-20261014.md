@@ -13,10 +13,11 @@ Foi criada uma organização independente, uma loja e usuários com perfil `FRAN
 | Organização | `a9b40f82-3d84-469b-90e9-b5bf3c6e4215` |
 | Loja | `c8e54736-419b-4682-8bc1-6cb9d24a0d92` |
 | Código da loja | `yasmin` |
-| Usuário principal | `b7381290-7162-4215-9988-5e43a6f19011` (`yasmin@picosbi.local`) |
-| Usuário alternativo | `d6290184-8273-4326-a099-6f54b702a122` (`yasminatacado@picosbi.local`) |
+| E-mail de login | `yasminatacado@picoserp.com.br` |
+| E-mail alternativo | `yasmin@picosbi.local` |
 | Perfil | `FRANQUEADO` (restrito unicamente a YASMIN ATACADO) |
 | Senha de acesso | `Yasmin@2026` |
+
 
 ---
 
