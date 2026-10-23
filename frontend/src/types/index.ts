@@ -1,15 +1,16 @@
-// Tipos de domínio alinhados aos contratos reais da API Pública Meu ERP Online
-// (seção 2.5 do prompt de edição v2). Nomes de campo pt-BR seguem o que a API
-// devolve; conversão de camelCase/PascalCase de query params fica em dataService.ts.
+// Tipos de domínio alinhados ao contrato REST do backend do PICOS Analytics (`../backend`),
+// que por sua vez sincroniza da API Pública Meu ERP Online e devolve isso já normalizado —
+// nomes de campo pt-BR herdados do ERP, mas os tipos e a formatação (boolean de verdade, datas
+// YYYY-MM-DD, valores numéricos) já vêm prontos, sem mais precisar de parse defensivo aqui.
 
-/** Forma de pagamento embutida num documento de venda (`pagamentosLista[].documentoPagamento`). */
+/** Forma de pagamento embutida numa venda. */
 export interface PagamentoDocumento {
   idPagamento: string
   descricao: string
   valor: number
 }
 
-/** `GET /api/documento/v1` — fato de vendas (um cupom/nota por linha). */
+/** `GET /vendas` — fato de vendas (um cupom/nota por linha), já filtrado a só vendas válidas. */
 export interface Venda {
   codigo: string
   numero: string
@@ -19,6 +20,9 @@ export interface Venda {
   dataHora: string
   dataHoraMovimento: string
   idCaixa: string
+  idLoja?: string
+  nomeLoja?: string
+  custoTotal?: number
   valTotal: number | null
   tipoMovimento: string
   tipoMovimentoDescricao: string
@@ -29,7 +33,7 @@ export interface Venda {
   pagamentos: PagamentoDocumento[]
 }
 
-/** `GET /api/documento/mercadorias-vendidas/v1` — item vendido, já agregado pela API por período. */
+/** `GET /itens-vendidos` — item vendido, já somado pelo backend dentro do período pedido. */
 export interface ItemVendido {
   idMercadoriaVariacao: string
   descricao: string
@@ -37,7 +41,7 @@ export interface ItemVendido {
   valTotalLiquido: number
 }
 
-/** `GET /api/mercadoria/v1` — catálogo (sem preço nem saldo por item). */
+/** `GET /produtos` (paginado) — catálogo, sem preço nem saldo por item. */
 export interface Produto {
   [key: string]: unknown
   codigoMercadoriaVariacao: string
@@ -51,22 +55,21 @@ export interface Produto {
   ativo: boolean
 }
 
-/** `GET /api/local-estoque/v1` */
-export interface LocalEstoque {
+/** `GET /estoque/resumo` — total agregado + locais, num único request (o backend já soma os
+ * saldos de todos os locais ativos, o front não precisa mais buscar local por local). */
+export interface LocalEstoqueResumo {
   codigo: string
   descricao: string
   ativo: boolean
 }
-
-/** `GET /api/local-estoque/{id}/estoques/v1` — 🔒 não testada, schema validado em runtime. */
-export interface SaldoEstoque {
-  idMercadoriaVariacao: string
-  qtdSaldo: number
-  qtdSaldoReserva: number
-  dataHora: string
+export interface EstoqueResumo {
+  totalItens: number
+  /** `false` quando a última sincronização de estoque falhou — mesmo sentido de antes. */
+  disponivel: boolean
+  locais: LocalEstoqueResumo[]
 }
 
-/** `GET /api/pagamento/v1` — dimensão de formas de pagamento. */
+/** `GET /formas-pagamento` — dimensão de formas de pagamento. */
 export interface FormaPagamentoDim {
   codigo: string
   descricao: string
@@ -76,7 +79,7 @@ export interface FormaPagamentoDim {
   ativo: boolean
 }
 
-/** `GET /api/pessoa/v1` — clientes/fornecedores. */
+/** `GET /clientes` (paginado) — clientes/fornecedores. */
 export interface Pessoa {
   [key: string]: unknown
   codigo: string
@@ -86,22 +89,22 @@ export interface Pessoa {
   cnpjCpf: string
   dataCadastro: string
   ativo: boolean
-  contato: { fone?: string; celular?: string; email?: string }
-  /** Só a UF vem legível (`enderecoPrincipal.uf`); o município só existe como `idIbgeMunicipio` numérico, sem lookup disponível na API. */
-  uf?: string
+  contato: { fone: string | null; celular: string | null; email: string | null }
+  /** Só a UF vem legível; o município não tem lookup disponível na API de origem. */
+  uf: string | null
 }
 
-/** `GET /api/empresa/v1` */
+/** `GET /empresa` */
 export interface Empresa {
   fantasia: string
   razaoSocial: string
   cnpjCpf: string
   municipio: string
   uf: string
-  logo?: string
+  logo: string | null
 }
 
-/** `GET /api/conta-pagar/pendentes/v1` e `GET /api/conta-receber/pendentes/v1`. */
+/** `GET /contas-a-receber` e `GET /contas-a-pagar` — só as ainda pendentes. */
 export interface ContaPendente {
   [key: string]: unknown
   idDocumento: string
@@ -118,7 +121,7 @@ export interface ContaPendente {
   status: string
 }
 
-/** `GET /api/funcionario/comissoes/v1` */
+/** `GET /comissoes` */
 export interface Comissao {
   [key: string]: unknown
   nomeFuncionario: string
@@ -126,19 +129,17 @@ export interface Comissao {
   valTotalComissao: number
 }
 
-/** `GET /api/dre/v1` — retorno não paginado. */
-export interface DreLinha {
-  descricao: string
-  principal: boolean
-  classificacao: string
-  periodos: { indice: number; valor: number; porcentagem: number }[]
-}
-export interface Dre {
-  periodos: unknown[]
-  linhas: DreLinha[]
+export interface Loja {
+  id: string
+  nome: string
+  codigo?: string
+  cnpj?: string
+  cidade?: string
+  uf?: string
+  ativo?: boolean
 }
 
-export type PeriodoPreset = 'dia' | 'semana' | 'mes' | 'semestre' | 'ano' | 'personalizado'
+export type PeriodoPreset = 'dia' | 'ontem' | 'semana' | 'mes' | 'trimestre' | 'semestre' | 'ano' | 'personalizado'
 
 export interface PeriodoRange {
   inicio: string
@@ -149,4 +150,5 @@ export interface FiltrosState {
   periodo: PeriodoPreset
   range: PeriodoRange
   idCaixa: string | 'todos'
+  lojasSelecionadas: string[]
 }

@@ -15,7 +15,8 @@ import {
   RangeCalendarCellTrigger,
   type DateRange,
 } from 'reka-ui'
-import { parseDate } from '@internationalized/date'
+import { parseDate, today, getLocalTimeZone } from '@internationalized/date'
+import { JANELA_MAXIMA_DIAS } from '@/utils/periodo'
 
 const props = defineProps<{ inicio: string; fim: string }>()
 const emit = defineEmits<{ change: [inicio: string, fim: string] }>()
@@ -32,10 +33,23 @@ const modelValue = computed<DateRange>({
     if (range.start && range.end) emit('change', range.start.toString(), range.end.toString())
   },
 })
+
+// O backend só mantém uma janela rolante de `JANELA_MAXIMA_DIAS` (ver `utils/periodo.ts`) —
+// desabilita no próprio calendário qualquer dia fora dela, em vez de deixar escolher e só
+// rejeitar depois no `422` do backend. Sem dado futuro também, então `hoje` é o teto.
+const hoje = today(getLocalTimeZone())
+const dataMinima = hoje.subtract({ days: JANELA_MAXIMA_DIAS })
 </script>
 
 <template>
-  <RangeCalendarRoot v-slot="{ grid, weekDays }" v-model="modelValue" locale="pt-BR" :week-starts-on="0">
+  <RangeCalendarRoot
+    v-slot="{ grid, weekDays }"
+    v-model="modelValue"
+    locale="pt-BR"
+    :week-starts-on="0"
+    :min-value="dataMinima"
+    :max-value="hoje"
+  >
     <RangeCalendarHeader class="flex items-center justify-between pb-2">
       <RangeCalendarPrev
         class="flex h-7 w-7 items-center justify-center rounded-btn text-ink-muted transition-colors hover:bg-surface-bg hover:text-ink disabled:pointer-events-none disabled:opacity-30"

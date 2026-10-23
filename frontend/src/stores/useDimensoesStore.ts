@@ -1,17 +1,16 @@
 import { defineStore } from 'pinia'
-import { getFormasPagamento, getLocaisEstoque, getSaldoEstoqueLocal } from '@/services/dataService'
-import type { FormaPagamentoDim, LocalEstoque } from '@/types'
+import { getFormasPagamento, getEstoqueResumo } from '@/services/dataService'
+import type { FormaPagamentoDim } from '@/types'
 
 /**
- * Dimensões carregadas 1x por sessão: formas de pagamento (`pagamento/v1`) e estoque
- * (`local-estoque/v1` + soma de `qtdSaldo` via `local-estoque/{id}/estoques/v1` — confirmada
- * por inspeção real em 2026-07-18). Se o schema de estoque divergir do esperado (ou a rota
- * mudar), `estoqueDisponivel` cai para `false` e a tela mostra "indisponível" em vez de quebrar.
+ * Dimensões carregadas 1x por sessão: formas de pagamento e resumo de estoque. O backend já
+ * soma o saldo de todos os locais ativos num único request (`GET /estoque/resumo`) — o front
+ * não precisa mais buscar local por local nem somar aqui; `estoqueDisponivel` só repassa o
+ * `disponivel` que o backend calcula a partir da última sincronização de estoque.
  */
 export const useDimensoesStore = defineStore('dimensoes', {
   state: () => ({
     formasPagamento: [] as FormaPagamentoDim[],
-    locaisEstoque: [] as LocalEstoque[],
     totalItensEstoque: 0,
     estoqueDisponivel: true,
     carregando: false,
@@ -26,26 +25,16 @@ export const useDimensoesStore = defineStore('dimensoes', {
       if (this.carregado || this.carregando) return
       this.carregando = true
       try {
-        const [formas, locais] = await Promise.all([getFormasPagamento(), getLocaisEstoque()])
+        const [formas, estoque] = await Promise.all([getFormasPagamento(), getEstoqueResumo()])
         this.formasPagamento = formas
-        this.locaisEstoque = locais
-        await this.carregarEstoque()
+        this.totalItensEstoque = estoque.totalItens
+        this.estoqueDisponivel = estoque.disponivel
         this.carregado = true
-      } finally {
-        this.carregando = false
-      }
-    },
-    async carregarEstoque() {
-      try {
-        const locaisAtivos = this.locaisEstoque.filter((l) => l.ativo)
-        const saldos = await Promise.all(locaisAtivos.map((l) => getSaldoEstoqueLocal(l.codigo)))
-        // qtdSaldo pode ser negativo (venda sem controle de estoque rigoroso) — negativo por
-        // item não reduz o total de itens fisicamente em estoque, então soma só o positivo.
-        this.totalItensEstoque = saldos.flat().reduce((acc, s) => acc + Math.max(0, s.qtdSaldo), 0)
-        this.estoqueDisponivel = true
       } catch {
         this.totalItensEstoque = 0
         this.estoqueDisponivel = false
+      } finally {
+        this.carregando = false
       }
     },
   },

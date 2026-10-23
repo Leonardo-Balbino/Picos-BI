@@ -12,6 +12,8 @@ dist
 dist-ssr
 *.local
 .env
+coverage
+generated
 
 # Editor directories and files
 .vscode/*
@@ -25,3 +27,4 @@ dist-ssr
 *.sw?
 .vercel
 .env*
+PowerBi-Backend/

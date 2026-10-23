@@ -5,57 +5,79 @@ export interface Intervalo {
   fim: Date
 }
 
-function inicioDoDia(d: Date): Date {
+/** Janela padrão para operações operacionais e consultas rotineiras (90 dias). */
+export const JANELA_PADRAO_DIAS = 90
+
+/** Janela histórica para registro de faturamento (1 ano completo = 365 dias). */
+export const JANELA_FATURAMENTO_DIAS = 365
+
+export const JANELA_MAXIMA_DIAS = JANELA_FATURAMENTO_DIAS
+
+export function inicioDoDia(d: Date): Date {
   const x = new Date(d)
   x.setHours(0, 0, 0, 0)
   return x
 }
-function fimDoDia(d: Date): Date {
+
+export function fimDoDia(d: Date): Date {
   const x = new Date(d)
   x.setHours(23, 59, 59, 999)
   return x
 }
-function addDias(d: Date, n: number): Date {
+
+export function addDias(d: Date, n: number): Date {
   return new Date(d.getTime() + n * 86400000)
+}
+
+/** Faz o parse seguro de YYYY-MM-DD para Date local (evita drift de fuso horário UTC). */
+export function parseDataLocal(iso: string): Date {
+  const [ano, mes, dia] = iso.split('-').map(Number)
+  return new Date(ano, mes - 1, dia)
 }
 
 export function resolverIntervalo(periodo: PeriodoPreset, range: PeriodoRange, agora: Date = new Date()): Intervalo {
   const fim = fimDoDia(agora)
-  switch (periodo) {
-    case 'dia':
-      return { inicio: inicioDoDia(agora), fim }
-    case 'semana':
-      return { inicio: inicioDoDia(addDias(agora, -6)), fim }
-    case 'semestre': {
-      const inicioSemestre = agora.getMonth() < 6 ? 0 : 6
-      return { inicio: new Date(agora.getFullYear(), inicioSemestre, 1), fim }
-    }
-    case 'ano':
-      return { inicio: new Date(agora.getFullYear(), 0, 1), fim }
-    case 'personalizado':
-      return {
-        inicio: range.inicio ? inicioDoDia(new Date(range.inicio)) : inicioDoDia(addDias(agora, -29)),
-        fim: range.fim ? fimDoDia(new Date(range.fim)) : fim,
+  const intervalo = ((): Intervalo => {
+    switch (periodo) {
+      case 'dia':
+        return { inicio: inicioDoDia(agora), fim }
+      case 'ontem': {
+        const ontem = addDias(agora, -1)
+        return { inicio: inicioDoDia(ontem), fim: fimDoDia(ontem) }
       }
-    case 'mes':
-    default:
-      return { inicio: new Date(agora.getFullYear(), agora.getMonth(), 1), fim }
-  }
-}
+      case 'semana':
+        return { inicio: inicioDoDia(addDias(agora, -6)), fim }
+      case 'trimestre':
+      case 'semestre':
+        // Intervalo de 90 dias
+        return { inicio: inicioDoDia(addDias(agora, -(JANELA_PADRAO_DIAS - 1))), fim }
+      case 'ano':
+        // Faturamento com registro de 1 ano completo (365 dias)
+        return { inicio: inicioDoDia(addDias(agora, -(JANELA_FATURAMENTO_DIAS - 1))), fim }
+      case 'personalizado':
+        return {
+          inicio: range.inicio ? inicioDoDia(parseDataLocal(range.inicio)) : inicioDoDia(addDias(agora, -(JANELA_PADRAO_DIAS - 1))),
+          fim: range.fim ? fimDoDia(parseDataLocal(range.fim)) : fim,
+        }
+      case 'mes':
+      default:
+        return { inicio: new Date(agora.getFullYear(), agora.getMonth(), 1), fim }
+    }
+  })()
 
-export function resolverIntervaloAnterior(atual: Intervalo): Intervalo {
-  const duracaoMs = atual.fim.getTime() - atual.inicio.getTime()
-  const fimAnterior = new Date(atual.inicio.getTime() - 1)
-  const inicioAnterior = new Date(fimAnterior.getTime() - duracaoMs)
-  return { inicio: inicioAnterior, fim: fimAnterior }
+  // Limite máximo: até 365 dias para faturamento
+  const limiteMinimo = inicioDoDia(addDias(agora, -JANELA_FATURAMENTO_DIAS))
+  if (intervalo.inicio < limiteMinimo) return { inicio: limiteMinimo, fim: intervalo.fim }
+  return intervalo
 }
 
 /**
- * Formato local `YYYY-MM-DDTHH:mm:ss`, sem timezone explícito — a semântica exata de fuso
- * de `documento/v1` (`dataHora` x `dataHoraMovimento` x `gmt`) não foi confirmada ainda
- * (seção 14.5 do prompt de edição v2); ajustar aqui quando isso for inspecionado.
+ * `YYYY-MM-DD` — formato de data de domínio que o backend espera em `inicio`/`fim`
+ * (`PeriodoQueryDto`, `IsDateString({ strict: true })`, ver `backend/src/common/dto`). Só a
+ * data, sem hora: o backend já trata "dia" como a unidade da janela de 365 dias, mandar
+ * timestamp aqui quebra o parse do lado dele.
  */
-export function paraDataHoraApi(d: Date): string {
+export function paraDataApi(d: Date): string {
   const pad = (n: number) => String(n).padStart(2, '0')
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
 }

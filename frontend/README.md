@@ -1,6 +1,8 @@
 # PICOS Analytics
 
-BI de vendas para empresas parceiras da revenda PICOS Sistemas, consumindo (somente leitura) a API Pública Meu ERP Online.
+BI de vendas para empresas parceiras da revenda PICOS Sistemas. Consome o [backend](../backend)
+do PICOS Analytics — não fala mais direto com a API Meu ERP Online (o backend faz isso, em
+segundo plano, e cacheia as leituras pesadas em Redis).
 
 ## Configuração
 
@@ -12,20 +14,29 @@ npm run dev
 
 Preencha o `.env`:
 
-- `VITE_API_BASE_URL` — em dev, deixe como `/publica` (caminho relativo). O `vite.config.ts` tem um proxy que repassa `/publica/*` para `https://api.meuerponline.com.br` por baixo dos panos.
-- `VITE_API_TOKEN` — token da empresa, usado como `Authorization: Authentication {token}`.
+- `VITE_BACKEND_API_URL` — em dev, `http://localhost:3000/api/v1` (o backend rodando local, via
+  `npm run start:dev` ou `docker compose --profile app --profile db up` — ver `../backend/README.md`).
+- `VITE_BACKEND_API_KEY` — mesmo valor de `BACKEND_API_KEY` no `.env` do backend, vai no header
+  `X-API-Key`.
 - `VITE_GOOGLE_CLIENT_ID` — Client ID do Google Identity Services usado no login.
 - `VITE_ALLOWED_EMAILS` — e-mails autorizados a entrar, separados por vírgula.
 
-## CORS / preflight
-
-A API da Meu ERP Online (IIS) não responde ao `OPTIONS` de preflight que o navegador dispara automaticamente por causa do header `Authorization` customizado — isso derruba a chamada com 405 antes mesmo do `GET` sair. Por isso `VITE_API_BASE_URL` aponta para o caminho relativo `/publica`: o servidor de dev do Vite (`server.proxy` em `vite.config.ts`) enxerga a chamada como same-origin (sem preflight) e a repassa para a API real. **Isso só existe no `npm run dev`** — em produção, o build é estático e precisa de um proxy equivalente na frente dele (nginx, edge function, etc.) apontando `/publica` para a API real; sem isso, o mesmo 405 volta a acontecer.
+O backend já responde a preflight `OPTIONS` corretamente (CORS configurado com a origem do front
+via `CORS_ORIGIN`), então não precisa de proxy de dev nem de rewrite em produção — diferente do
+que era necessário quando o front chamava a API Meu ERP Online (IIS) direto.
 
 ## Segurança
 
-Este é um app 100% front-end nesta fase: **todas as variáveis `VITE_*` (incluindo `VITE_API_TOKEN`) ficam embutidas no bundle publicado** — qualquer pessoa com acesso ao build consegue lê-las. Isso é aceitável para uso interno controlado (acesso restrito à revenda e às empresas parceiras), mas **não deve ser usado como está para uma exposição pública**. Para isso, o passo correto é introduzir um backend/proxy que guarde o token da API e nunca o exponha ao navegador — não implementado nesta fase (o proxy de dev acima resolve só o CORS, não esconde o token, que ainda vai embutido no bundle).
+`VITE_BACKEND_API_KEY` ainda é uma variável `VITE_*`, embutida no bundle publicado — qualquer
+pessoa com acesso ao build consegue lê-la. Isso é aceitável pro mesmo cenário de uso interno
+controlado de antes (acesso restrito à revenda e às empresas parceiras): a chave só abre a API
+deste backend (que não expõe nada write, só leitura agregada), não o token real da Meu ERP
+Online — esse agora fica só no backend, nunca chega ao navegador. Ver "Decisões que merecem
+revisão" em `../backend/README.md` (item sobre auth por API key) se este modelo precisar
+endurecer no futuro (ex.: JWT por usuário).
 
-A camada `src/services/api.ts` só executa `GET`: não existe caminho de código que monte `POST`/`PUT`/`PATCH`/`DELETE` contra a API Meu ERP Online.
+A camada `src/services/api.ts` só executa `GET`: não existe caminho de código que monte
+`POST`/`PUT`/`PATCH`/`DELETE` contra o backend.
 
 ## Scripts
 

@@ -3,10 +3,6 @@
   "outputDirectory": "dist",
   "rewrites": [
     {
-      "source": "/publica/:path*",
-      "destination": "https://api.meuerponline.com.br/publica/:path*"
-    },
-    {
       "source": "/(.*)",
       "destination": "/index.html"
     }

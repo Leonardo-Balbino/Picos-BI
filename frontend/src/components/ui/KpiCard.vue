@@ -11,20 +11,38 @@ withDefaults(
     suffix?: string
     progress?: number
     highlight?: boolean
+    size?: 'normal' | 'lg' | 'tv'
+    badge?: string
+    badgeVariant?: 'amber' | 'green' | 'default'
   }>(),
-  { variationLabel: 'vs. período anterior' },
+  { variationLabel: 'vs. período anterior', size: 'normal', badgeVariant: 'default' },
 )
 </script>
 
 <template>
   <div class="rounded-card p-5 shadow-sm" :class="highlight ? 'bg-brand-700 text-white' : 'bg-surface text-ink'">
     <div class="flex items-start justify-between gap-2">
-      <span
-        class="text-xs font-semibold uppercase tracking-wide"
-        :class="highlight ? 'text-white/70' : 'text-ink-muted'"
-      >
-        {{ label }}
-      </span>
+      <div class="flex flex-wrap items-center gap-1.5">
+        <span
+          class="text-xs font-semibold uppercase tracking-wide"
+          :class="highlight ? 'text-white/70' : 'text-ink-muted'"
+        >
+          {{ label }}
+        </span>
+        <span
+          v-if="badge"
+          class="inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider"
+          :class="[
+            badgeVariant === 'amber'
+              ? 'bg-amber-100 text-amber-900 border border-amber-300'
+              : badgeVariant === 'green'
+                ? 'bg-emerald-100 text-emerald-900 border border-emerald-300'
+                : 'bg-slate-100 text-slate-700 border border-slate-300',
+          ]"
+        >
+          {{ badge }}
+        </span>
+      </div>
       <span
         v-if="progress !== undefined"
         class="rounded-full bg-green-100 px-2 py-0.5 text-xs font-semibold text-green-700"
@@ -48,7 +66,17 @@ withDefaults(
     </div>
 
     <template v-else>
-      <p class="tabular-nums mt-3 text-2xl font-bold" :class="highlight ? 'text-white' : 'text-ink'">
+      <p
+        class="tabular-nums mt-3 font-bold tracking-tight"
+        :class="[
+          highlight ? 'text-white' : 'text-ink',
+          size === 'tv'
+            ? 'text-3xl sm:text-4xl xl:text-5xl font-extrabold'
+            : size === 'lg'
+              ? 'text-2xl sm:text-3xl xl:text-4xl'
+              : 'text-2xl',
+        ]"
+      >
         {{ value }}
       </p>
       <div v-if="variation !== undefined" class="mt-1 flex items-center gap-1 text-xs font-medium">

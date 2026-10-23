@@ -14,13 +14,13 @@ const ui = useUiStore()
 const navItems = [
   { to: '/visao-geral', label: 'Visão Geral', icon: 'bi-grid-1x2-fill' },
   { to: '/vendas', label: 'Vendas', icon: 'bi-graph-up-arrow' },
+  { to: '/mais-vendidos', label: 'Mais Vendidos', icon: 'bi-trophy-fill' },
   { to: '/produtos', label: 'Produtos', icon: 'bi-box-seam-fill' },
   { to: '/clientes', label: 'Clientes', icon: 'bi-people-fill' },
   { to: '/vendedores', label: 'Vendedores', icon: 'bi-person-badge-fill' },
   { to: '/pagamentos', label: 'Pagamentos', icon: 'bi-credit-card-fill' },
-  { to: '/relatorios', label: 'Relatórios', icon: 'bi-file-earmark-bar-graph-fill' },
   { to: '/configuracoes', label: 'Configurações', icon: 'bi-gear-fill' },
-  { to: '/apps', label: 'Apps', icon: 'bi-grid-3x3-gap' },
+  // { to: '/apps', label: 'Apps', icon: 'bi-grid-3x3-gap' },
 ]
 
 const initials = computed(() =>
