@@ -7,14 +7,13 @@ import SkeletonCard from '@/components/ui/SkeletonCard.vue'
 import EmptyState from '@/components/ui/EmptyState.vue'
 import BaseButton from '@/components/ui/BaseButton.vue'
 import Pagination from '@/components/ui/Pagination.vue'
-import { HBarChart } from '@/components/charts/lazy'
 import { useVendasStore } from '@/stores/useVendasStore'
 import { useFiltersStore } from '@/stores/useFiltersStore'
 import { useExportStore } from '@/stores/useExportStore'
 import { useLojasStore } from '@/stores/useLojasStore'
 import { useRecarregarDados } from '@/composables/useRecarregarDados'
 import { usePagination } from '@/composables/usePagination'
-import { formatCurrency, formatNumber, formatPercent, formatCompact } from '@/utils/formatters'
+import { formatCurrency, formatNumber, formatPercent } from '@/utils/formatters'
 import { exportarCsv } from '@/utils/exportar'
 import { useUiStore } from '@/stores/useUiStore'
 
@@ -115,17 +114,6 @@ const linhasFiltradas = computed<ItemVendidoEnriquecido[]>(() => {
       item.descricao.toLowerCase().includes(termo) ||
       item.idMercadoriaVariacao.toLowerCase().includes(termo),
   )
-})
-
-// Top 10 para o gráfico de barras horizontal
-const top10Grafico = computed(() => itensOrdenados.value.slice(0, 10))
-
-const graficoCategorias = computed(() => top10Grafico.value.map((i) => i.descricao))
-const graficoSeries = computed(() => {
-  if (ordenarPor.value === 'qtd') {
-    return [{ name: 'Qtd Vendida (un.)', data: top10Grafico.value.map((i) => i.qtd) }]
-  }
-  return [{ name: 'Faturamento (R$)', data: top10Grafico.value.map((i) => i.valTotalLiquido) }]
 })
 
 // Paginação da tabela (10 itens por página)
@@ -326,57 +314,6 @@ function dispararExportacao() {
           :value="formatCurrency(precoMedioGeral)"
           :suffix="`${formatNumber(itensOrdenados.length)} produtos distintos`"
           icon="bi-tag-fill"
-        />
-      </div>
-
-      <!-- Gráfico Top 10 Produtos Mais Vendidos -->
-      <div class="rounded-card border border-surface-border bg-surface p-5 shadow-sm">
-        <div class="mb-4 flex flex-wrap items-center justify-between gap-3 border-b border-surface-border/50 pb-3">
-          <div>
-            <h2 class="text-base font-bold text-ink">Top 10 Produtos em Destaque</h2>
-            <p class="text-xs text-ink-muted">Visão comparativa gráfica dos itens líderes</p>
-          </div>
-
-          <!-- Alternância de métrica do gráfico -->
-          <div class="inline-flex rounded-btn bg-surface-bg p-1 text-xs font-semibold">
-            <button
-              type="button"
-              class="rounded-btn px-3 py-1.5 transition-colors"
-              :class="
-                ordenarPor === 'qtd'
-                  ? 'bg-brand-700 text-white shadow-sm'
-                  : 'text-ink-muted hover:text-ink'
-              "
-              @click="ordenarPor = 'qtd'"
-            >
-              <i class="bi bi-bar-chart-fill mr-1" />Por Quantidade
-            </button>
-            <button
-              type="button"
-              class="rounded-btn px-3 py-1.5 transition-colors"
-              :class="
-                ordenarPor === 'valor'
-                  ? 'bg-brand-700 text-white shadow-sm'
-                  : 'text-ink-muted hover:text-ink'
-              "
-              @click="ordenarPor = 'valor'"
-            >
-              <i class="bi bi-currency-dollar mr-1" />Por Faturamento
-            </button>
-          </div>
-        </div>
-
-        <EmptyState
-          v-if="top10Grafico.length === 0"
-          title="Nenhum produto vendido no período selecionado"
-          description="Altere a data ou selecione outro dia acima para visualizar o ranking."
-        />
-        <HBarChart
-          v-else
-          :categories="graficoCategorias"
-          :series="graficoSeries"
-          :value-formatter="ordenarPor === 'qtd' ? (v) => `${formatNumber(v)} un.` : formatCompact"
-          :height="320"
         />
       </div>
 
