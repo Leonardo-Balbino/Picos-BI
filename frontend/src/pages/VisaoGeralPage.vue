@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import { ref, computed, watch, watchEffect, onMounted, onUnmounted } from 'vue'
+import { ref, computed, watchEffect, onMounted, onUnmounted } from 'vue'
 import { RouterLink } from 'vue-router'
 import GlobalFilters from '@/components/filters/GlobalFilters.vue'
 import EmptyState from '@/components/ui/EmptyState.vue'
 import SkeletonCard from '@/components/ui/SkeletonCard.vue'
 import BaseButton from '@/components/ui/BaseButton.vue'
-import { BarChart, HBarChart } from '@/components/charts/lazy'
+import { BarChart } from '@/components/charts/lazy'
 import { useVendasStore } from '@/stores/useVendasStore'
 import { useAuthStore } from '@/stores/useAuthStore'
 import { useFiltersStore } from '@/stores/useFiltersStore'
@@ -21,24 +21,13 @@ const filters = useFiltersStore()
 const lojas = useLojasStore()
 const exportacao = useExportStore()
 const agg = useAggregations()
-const { forcarAtualizacao, periodoAtualISO } = useRecarregarDados()
+const { forcarAtualizacao } = useRecarregarDados()
 const kpis = agg.kpisGerais
 const formatarMargem = (valor: number) => valor.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + '%'
 const diaSemana = computed(() => agg.vendasPorDiaSemana())
 const porHora = computed(() => agg.vendasPorHora())
 const vendasDiarias = computed(() => agg.serieTemporalFaturamento(false))
 
-function carregarTopProdutos() {
-  const { inicio, fim } = periodoAtualISO()
-  vendas.carregarItensVendidos(inicio, fim, filters.lojasSelecionadas.slice().sort().join(','))
-}
-watch(
-  () => [filters.periodo, filters.range.inicio, filters.range.fim, filters.lojasSelecionadas.join(','), vendas.revisao],
-  carregarTopProdutos,
-  { immediate: true },
-)
-
-const topProdutos = computed(() => agg.topItensVendidos(10))
 const diaMaiorVenda = computed(() => {
   const vals = vendasDiarias.value.valores
   const max = Math.max(0, ...vals)
@@ -88,7 +77,6 @@ watchEffect(() => exportacao.registrar('painel-executivo', [
   { indicador: 'Vendas elegíveis', valor: formatNumber(kpis.value.numeroVendas), detalhe: intervalo.value },
   { indicador: 'Ticket médio', valor: formatCurrency(kpis.value.ticketMedio), detalhe: intervalo.value },
   ...vendasDiarias.value.categorias.map((dia, i) => ({ indicador: dia, valor: formatCurrency(vendasDiarias.value.valores[i] ?? 0), detalhe: 'Total vendido no dia' })),
-  ...topProdutos.value.map((p, i) => ({ indicador: `${i + 1}º Produto mais vendido`, valor: formatCurrency(p.valTotalLiquido), detalhe: `${p.descricao} (${formatNumber(p.qtd)} un)` })),
 ]))
 </script>
 
@@ -187,7 +175,7 @@ watchEffect(() => exportacao.registrar('painel-executivo', [
         </section>
       </div>
 
-      <div class="mt-6 grid gap-5 xl:grid-cols-2">
+      <div class="mt-6">
         <section class="executive-chart" aria-labelledby="titulo-vendas-diarias">
           <div class="flex items-center justify-between">
             <h2 id="titulo-vendas-diarias">Total vendido por dia</h2>
@@ -198,38 +186,6 @@ watchEffect(() => exportacao.registrar('painel-executivo', [
           </p>
           <EmptyState v-if="!kpis.numeroVendas" title="Sem vendas no período" />
           <BarChart v-else :categories="vendasDiarias.categorias" :series="[{ name: 'Total vendido', data: vendasDiarias.valores }]" :value-formatter="formatCompact" :highlight-index="-1" base-color="#36b998" :height="modoTv ? 380 : 320" />
-        </section>
-
-        <section class="executive-chart" aria-labelledby="titulo-produtos-mais-vendidos">
-          <div class="flex items-center justify-between">
-            <div>
-              <h2 id="titulo-produtos-mais-vendidos">Produtos mais vendidos</h2>
-              <p class="chart-description">Top 10 produtos em faturamento no período selecionado.</p>
-            </div>
-            <span v-if="topProdutos.length" class="text-xs font-semibold text-brand-700">Top {{ topProdutos.length }}</span>
-          </div>
-          <p v-if="topProdutos.length" class="chart-highlight truncate text-brand-800">
-            1º lugar: {{ topProdutos[0].descricao }} · {{ formatCurrency(topProdutos[0].valTotalLiquido) }} ({{ formatNumber(topProdutos[0].qtd) }} un)
-          </p>
-          <div v-if="vendas.carregandoItensVendidos" class="space-y-3 pt-4">
-            <SkeletonCard v-for="i in 5" :key="i" variant="table-row" />
-          </div>
-          <EmptyState
-            v-else-if="vendas.erroItensVendidos"
-            icon="bi-exclamation-triangle"
-            title="Não foi possível carregar os produtos vendidos"
-            :description="vendas.erroItensVendidos"
-          >
-            <BaseButton variant="secondary" class="mt-3" @click="carregarTopProdutos">Tentar novamente</BaseButton>
-          </EmptyState>
-          <EmptyState v-else-if="topProdutos.length === 0" title="Sem vendas de produtos no período" />
-          <HBarChart
-            v-else
-            :categories="topProdutos.map((p) => p.descricao)"
-            :series="[{ name: 'Faturamento', data: topProdutos.map((p) => p.valTotalLiquido) }]"
-            :value-formatter="formatCompact"
-            :height="modoTv ? 380 : 320"
-          />
         </section>
       </div>
     </template>
