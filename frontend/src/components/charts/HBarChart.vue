@@ -17,11 +17,15 @@ const props = withDefaults(
 const options = computed<ApexOptions>(() =>
   mergeChartOptions({
     chart: { type: 'bar', height: props.height },
-    plotOptions: { bar: { horizontal: true, borderRadius: 4, barHeight: '55%' } },
+    plotOptions: { bar: { horizontal: true, borderRadius: 4, barHeight: '55%', dataLabels: { position: 'top' } } },
     dataLabels: {
       enabled: true,
+      textAnchor: 'start',
+      offsetX: 10,
+      background: { enabled: false },
+      dropShadow: { enabled: false },
       formatter: props.valueFormatter,
-      style: { colors: ['#2E1F42'], fontFamily: 'Montserrat, sans-serif', fontWeight: 600 },
+      style: { colors: ['#000000'], fontFamily: 'Montserrat, sans-serif', fontWeight: 600 },
     },
     legend: { show: false },
     // Com `horizontal: true` o ApexCharts inverte a quem cada eixo delega a formatação:
@@ -33,6 +37,7 @@ const options = computed<ApexOptions>(() =>
     // repetimos aqui o estilo base em vez de herdar.
     xaxis: {
       categories: props.categories,
+      max: Math.max(1, ...props.series.flatMap((s) => s.data)) * 1.5,
       labels: {
         formatter: props.valueFormatter,
         style: { colors: CHART_COLORS.inkMuted, fontSize: '12px' },

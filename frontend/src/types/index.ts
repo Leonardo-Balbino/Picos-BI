@@ -33,6 +33,36 @@ export interface Venda {
   pagamentos: PagamentoDocumento[]
 }
 
+export interface ResumoVendas {
+  idsCaixa: string[]
+  idsLojasPresentes: string[]
+  kpisGerais: {
+    totalPeriodo: number
+    custoTotal: number | null
+    lucroBruto: number | null
+    margemLucro: number | null
+    vendasSemCusto: number
+    ticketMedio: number
+    cmvPercentual: number | null
+    numeroVendas: number
+    vendasHoje: number
+    isCustoEstimado: boolean
+  }
+  serieTemporal: Record<string, number>
+  porDiaSemana: number[]
+  porHora: number[]
+  porPDV: Array<{ idCaixa: string; total: number }>
+  pagamentos: Array<{ idPagamento: string; valor: number; nTransacoes: number }>
+  comparativo: Array<{ idLoja: string; faturamento: number; numeroVendas: number }>
+}
+
+export interface PaginaVendas {
+  items: Venda[]
+  total: number
+  page: number
+  pageSize: number
+}
+
 /** `GET /itens-vendidos` — item vendido, já somado pelo backend dentro do período pedido. */
 export interface ItemVendido {
   idMercadoriaVariacao: string
@@ -139,7 +169,7 @@ export interface Loja {
   ativo?: boolean
 }
 
-export type PeriodoPreset = 'dia' | 'ontem' | 'semana' | 'mes' | 'trimestre' | 'semestre' | 'ano' | 'personalizado'
+export type PeriodoPreset = 'dia' | 'ontem' | 'dia-anterior' | 'semana' | 'mes' | 'mes-anterior' | 'trimestre' | 'semestre' | 'ano' | 'personalizado'
 
 export interface PeriodoRange {
   inicio: string

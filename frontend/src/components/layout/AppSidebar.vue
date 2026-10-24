@@ -11,17 +11,21 @@ const router = useRouter()
 const auth = useAuthStore()
 const ui = useUiStore()
 
-const navItems = [
+const todosNavItems = [
   { to: '/visao-geral', label: 'Visão Geral', icon: 'bi-grid-1x2-fill' },
   { to: '/vendas', label: 'Vendas', icon: 'bi-graph-up-arrow' },
   { to: '/mais-vendidos', label: 'Mais Vendidos', icon: 'bi-trophy-fill' },
-  { to: '/produtos', label: 'Produtos', icon: 'bi-box-seam-fill' },
-  { to: '/clientes', label: 'Clientes', icon: 'bi-people-fill' },
   { to: '/vendedores', label: 'Vendedores', icon: 'bi-person-badge-fill' },
+  { to: '/estoque', label: 'Estoque', icon: 'bi-boxes' },
+  { to: '/contas-a-pagar', label: 'Contas a pagar', icon: 'bi-cash-stack' },
+  { to: '/contas-a-receber', label: 'Contas a receber', icon: 'bi-wallet2' },
+  { to: '/dre', label: 'DRE', icon: 'bi-file-earmark-bar-graph-fill' },
   { to: '/pagamentos', label: 'Pagamentos', icon: 'bi-credit-card-fill' },
   { to: '/configuracoes', label: 'Configurações', icon: 'bi-gear-fill' },
-  // { to: '/apps', label: 'Apps', icon: 'bi-grid-3x3-gap' },
+  // Abas 'Produtos' e 'Clientes' ocultadas do menu principal conforme especificação
 ]
+
+const navItems = computed(() => todosNavItems)
 
 const initials = computed(() =>
   (auth.usuario?.nome ?? '')

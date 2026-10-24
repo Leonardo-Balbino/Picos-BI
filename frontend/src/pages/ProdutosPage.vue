@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, ref, watchEffect } from 'vue'
-import { RouterLink } from 'vue-router'
+import { computed, onMounted, ref, watch, watchEffect } from 'vue'
 import PageHeader from '@/components/layout/PageHeader.vue'
 import GlobalFilters from '@/components/filters/GlobalFilters.vue'
 import KpiCard from '@/components/ui/KpiCard.vue'
@@ -10,18 +9,37 @@ import EmptyState from '@/components/ui/EmptyState.vue'
 import SkeletonCard from '@/components/ui/SkeletonCard.vue'
 import Pagination from '@/components/ui/Pagination.vue'
 import BaseButton from '@/components/ui/BaseButton.vue'
+import { HBarChart } from '@/components/charts/lazy'
+import { useVendasStore } from '@/stores/useVendasStore'
 import { useProdutosStore } from '@/stores/useProdutosStore'
 import { useDimensoesStore } from '@/stores/useDimensoesStore'
+import { useFiltersStore } from '@/stores/useFiltersStore'
 import { useExportStore } from '@/stores/useExportStore'
+import { useAggregations } from '@/composables/useAggregations'
+import { useRecarregarDados } from '@/composables/useRecarregarDados'
 import { usePagination } from '@/composables/usePagination'
-import { formatNumber } from '@/utils/formatters'
+import { formatCompact, formatNumber } from '@/utils/formatters'
 import type { Produto } from '@/types'
 
+const vendasStore = useVendasStore()
 const produtosStore = useProdutosStore()
 const dimensoes = useDimensoesStore()
+const filters = useFiltersStore()
 const exportStore = useExportStore()
+const agg = useAggregations()
+const { periodoAtualISO } = useRecarregarDados()
 
 onMounted(() => produtosStore.carregar())
+
+// Top Produtos (mercadorias-vendidas) só é buscado aqui, sob demanda — não em toda troca de
+// período em qualquer tela, já que só esta página usa esse dado (ver useVendasStore.ts).
+function carregarTopProdutos() {
+  const { inicio, fim } = periodoAtualISO()
+  vendasStore.carregarItensVendidos(inicio, fim, filters.lojasSelecionadas.slice().sort().join(','))
+}
+watch(() => [filters.periodo, filters.range.inicio, filters.range.fim, filters.lojasSelecionadas.join(','), vendasStore.revisao], carregarTopProdutos, { immediate: true })
+
+const topProdutos = computed(() => agg.topItensVendidos(8))
 
 const busca = ref('')
 const linhasFiltradas = computed<Produto[]>(() => {
@@ -61,18 +79,7 @@ const columns: DataTableColumn[] = [
 
 <template>
   <div>
-    <div class="mb-4 flex flex-wrap items-center justify-between gap-4">
-      <PageHeader title="Produtos" subtitle="Catálogo geral de produtos cadastrados e saldo de estoque." />
-      <RouterLink
-        to="/mais-vendidos"
-        class="inline-flex items-center gap-2 rounded-btn border border-brand-200 bg-brand-50 px-4 py-2.5 text-xs font-semibold text-brand-700 shadow-sm transition-colors hover:bg-brand-100"
-      >
-        <i class="bi bi-trophy-fill text-amber-500" />
-        <span>Ver Ranking dos Mais Vendidos</span>
-        <i class="bi bi-arrow-right text-brand-500" />
-      </RouterLink>
-    </div>
-
+    <PageHeader title="Produtos" subtitle="Catálogo e ranking de mais vendidos no período." />
     <GlobalFilters />
 
     <div class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
@@ -81,11 +88,27 @@ const columns: DataTableColumn[] = [
         :value="dimensoes.estoqueDisponivel ? formatNumber(dimensoes.totalItensEstoque) : 'Indisponível'"
         icon="bi-box-seam"
       />
-      <KpiCard
-        label="Produtos Ativos"
-        :value="formatNumber(produtosStore.catalogo.filter((p) => p.ativo).length)"
-        icon="bi-tags"
-        suffix="Portfólio total"
+      <KpiCard label="Produtos Ativos" :value="formatNumber(produtosStore.catalogo.filter((p) => p.ativo).length)" icon="bi-tags" suffix="Portfólio total" />
+    </div>
+
+    <div class="mt-6 rounded-card bg-surface p-5 shadow-sm">
+      <p class="mb-2 text-sm font-semibold text-ink">Top produtos vendidos no período</p>
+      <SkeletonCard v-if="vendasStore.carregandoItensVendidos" variant="chart" />
+      <EmptyState
+        v-else-if="vendasStore.erroItensVendidos"
+        icon="bi-exclamation-triangle"
+        title="Não foi possível carregar os produtos vendidos"
+        :description="vendasStore.erroItensVendidos"
+      >
+        <BaseButton variant="secondary" class="mt-3" @click="carregarTopProdutos">Tentar novamente</BaseButton>
+      </EmptyState>
+      <EmptyState v-else-if="topProdutos.length === 0" title="Sem vendas de produtos no período" />
+      <HBarChart
+        v-else
+        :categories="topProdutos.map((p) => p.descricao)"
+        :series="[{ name: 'Faturamento', data: topProdutos.map((p) => p.valTotalLiquido) }]"
+        :value-formatter="formatCompact"
+        :height="280"
       />
     </div>
 

@@ -1,0 +1,82 @@
+# Profiles (seção 13 do documento de padrões):
+#   - `db`   — Postgres + Redis, sempre necessário em dev, mesmo rodando a app localmente com
+#              `npm run start:dev`.
+#   - `app`  — a aplicação containerizada, simula produção; o fluxo principal de dev roda a
+#              app localmente e só a infra (`db`) em container.
+#   - `tools` — cliente web de administração do banco; nunca sobe junto de um deploy real.
+#
+# `docker compose --profile db up -d`             -> Postgres + Redis, pra dev com `npm run start:dev`.
+# `docker compose --profile app --profile db up`  -> tudo containerizado, simulando produção.
+# `docker compose --profile tools up -d`          -> Adminer, opcional, só quando precisar.
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    profiles: ['db', 'app']
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-picos_analytics}
+    ports:
+      # Bind em loopback: o único consumidor é a app na mesma máquina (seção 12 do documento
+      # de padrões) — nunca expor a porta do banco na interface pública de um host remoto.
+      - '127.0.0.1:5432:5432'
+    volumes:
+      - picos_postgres_data:/var/lib/postgresql/data
+    # Default do Docker (64MB) estoura em joins/sorts maiores (ex.: agregações de período largo
+    # em produção, com mais volume que o dev local) — folga barata, não custa nada em dev.
+    shm_size: 1gb
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER:-postgres}']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    profiles: ['db', 'app']
+    restart: unless-stopped
+    # `--save ''` desliga snapshot em disco — o cache é inteiramente reconstruível a partir do
+    # Postgres (ver `RedisService`), então persistência aqui só custaria I/O sem ganhar nada.
+    command: redis-server --save '' --appendonly no
+    ports:
+      - '127.0.0.1:6379:6379'
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  app:
+    profiles: ['app']
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      # Sobrescreve o `.env` (que aponta pra localhost) pro nome dos serviços dentro da rede do
+      # compose — o resto das variáveis vem do `.env` como está.
+      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-picos_analytics}?schema=public
+      REDIS_URL: redis://redis:6379
+    ports:
+      - '127.0.0.1:3000:3000'
+
+  adminer:
+    image: adminer:5
+    profiles: ['tools']
+    restart: unless-stopped
+    depends_on:
+      - postgres
+    ports:
+      - '127.0.0.1:8080:8080'
+
+volumes:
+  picos_postgres_data:

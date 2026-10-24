@@ -1,12 +1,10 @@
 import { defineStore } from 'pinia'
 import { getFormasPagamento, getEstoqueResumo } from '@/services/dataService'
+import { normalizarNomeFormaPagamento } from '@/utils/formasPagamento'
 import type { FormaPagamentoDim } from '@/types'
 
 /**
- * Dimensões carregadas 1x por sessão: formas de pagamento e resumo de estoque. O backend já
- * soma o saldo de todos os locais ativos num único request (`GET /estoque/resumo`) — o front
- * não precisa mais buscar local por local nem somar aqui; `estoqueDisponivel` só repassa o
- * `disponivel` que o backend calcula a partir da última sincronização de estoque.
+ * Dimensões carregadas 1x por sessão: formas de pagamento e resumo de estoque.
  */
 export const useDimensoesStore = defineStore('dimensoes', {
   state: () => ({
@@ -17,8 +15,21 @@ export const useDimensoesStore = defineStore('dimensoes', {
     carregado: false,
   }),
   getters: {
-    labelFormaPagamento: (state) => (idPagamento: string) =>
-      state.formasPagamento.find((f) => f.codigo === idPagamento)?.descricao ?? idPagamento,
+    labelFormaPagamento: (state) => (idPagamento: string, descricao?: string) => {
+      const idLimpo = String(idPagamento ?? '').replace(/^.*_/, '').trim()
+      const match = state.formasPagamento.find(
+        (f) =>
+          f.codigo === idPagamento ||
+          f.codigo === idLimpo ||
+          f.codigo.endsWith(`_${idLimpo}`) ||
+          f.descricao.toUpperCase() === String(descricao ?? '').toUpperCase(),
+      )
+      return normalizarNomeFormaPagamento(
+        idPagamento,
+        descricao || match?.descricao,
+        match?.tipoDescricao,
+      )
+    },
   },
   actions: {
     async carregar() {

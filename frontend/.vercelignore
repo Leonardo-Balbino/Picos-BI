@@ -2,3 +2,9 @@
 .env.example
 design-reference
 ARQUIVO_DE_EDICAO.md
+.env*
+*.local
+node_modules
+dist
+.vercel
+*.Zone.Identifier

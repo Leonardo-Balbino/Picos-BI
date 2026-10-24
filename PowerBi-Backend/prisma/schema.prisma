@@ -1,0 +1,356 @@
+// Schema do backend de sincronização do PICOS Analytics.
+//
+// Duas naturezas de dado:
+// 1. Janela rolante de 365 dias para Venda e 90 dias para ItemVendidoDia e ComissaoDia.
+// 2. Snapshot/upsert (todo o resto) — estado corrente.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// Organizações, Lojas e Usuários (Base Multiloja e RLS)
+// ─────────────────────────────────────────────────────────────────────────
+
+model Organizacao {
+  id           String    @id @default(uuid())
+  nome         String
+  codigo       String    @unique
+  cnpj         String?
+  ativo        Boolean   @default(true)
+  criadoEm     DateTime  @default(now())
+  atualizadoEm DateTime  @updatedAt
+
+  lojas        Loja[]
+}
+
+model Loja {
+  id            String    @id @default(uuid())
+  idOrganizacao String
+  organizacao   Organizacao @relation(fields: [idOrganizacao], references: [id], onDelete: Cascade)
+  nome          String
+  codigo        String    @unique
+  cnpj          String?
+  cidade        String?
+  uf            String?
+  erpToken      String?
+  idEmpresaErp  Int?
+  ativo         Boolean   @default(true)
+  criadoEm      DateTime  @default(now())
+  atualizadoEm  DateTime  @updatedAt
+
+  usuarios        UsuarioLoja[]
+  vendas          Venda[]
+  itensVendidos   ItemVendidoDia[]
+  comissoes       ComissaoDia[]
+  produtos        Produto[]
+  pessoas         Pessoa[]
+  formasPagamento FormaPagamentoDim[]
+  locaisEstoque   LocalEstoque[]
+  contasPendentes ContaPendente[]
+  syncLogs        SyncLog[]
+
+  @@index([idOrganizacao])
+}
+
+model Usuario {
+  id           String        @id @default(uuid())
+  email        String        @unique
+  senha        String
+  nome         String
+  perfil       String        @default("ADMIN") // ADMIN ou FRANQUEADO
+  ativo        Boolean       @default(true)
+  criadoEm     DateTime      @default(now())
+  atualizadoEm DateTime      @updatedAt
+
+  lojas        UsuarioLoja[]
+
+  @@index([email])
+}
+
+model UsuarioLoja {
+  id        String   @id @default(uuid())
+  idUsuario String
+  idLoja    String
+  usuario   Usuario  @relation(fields: [idUsuario], references: [id], onDelete: Cascade)
+  loja      Loja     @relation(fields: [idLoja], references: [id], onDelete: Cascade)
+  criadoEm  DateTime @default(now())
+
+  @@unique([idUsuario, idLoja])
+  @@index([idUsuario])
+  @@index([idLoja])
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// 1. Janela rolante
+// ─────────────────────────────────────────────────────────────────────────
+
+model Venda {
+  codigo                  String   @id
+  numero                  String
+  serie                   String
+  modelo                  String
+  modeloDescricao         String
+  dataHora                String
+  dataHoraMovimento       String
+  data                    DateTime @db.Date
+  idCaixa                 String
+  valTotal                Decimal? @db.Decimal(14, 2)
+  tipoMovimento           String
+  tipoMovimentoDescricao  String
+  tipoMovimentoFinanceiro String
+  status                  String
+  statusDescricao         String
+  nomeUsuario             String
+  vendedores              Json? // Itens agrupados por vendedor do ERP; null = histórico ainda não detalhado.
+  custoTotal              Decimal? @db.Decimal(14, 2) // Custo real dos itens; null = custo não informado/completo.
+
+  idLoja                  String?
+  loja                    Loja?    @relation(fields: [idLoja], references: [id], onDelete: SetNull)
+
+  pagamentos PagamentoVenda[]
+
+  criadoEm     DateTime @default(now())
+  atualizadoEm DateTime @updatedAt
+
+  @@index([data])
+  @@index([idCaixa, data])
+  @@index([idLoja, data])
+  @@index([idLoja, idCaixa, data])
+}
+
+model PagamentoVenda {
+  id          String  @id @default(uuid())
+  vendaCodigo String
+  venda       Venda   @relation(fields: [vendaCodigo], references: [codigo], onDelete: Cascade)
+  idPagamento String
+  descricao   String
+  valor       Decimal @db.Decimal(14, 2)
+
+  @@index([vendaCodigo])
+}
+
+model ItemVendidoDia {
+  id                   String   @id @default(uuid())
+  data                 DateTime @db.Date
+  idMercadoriaVariacao String
+  descricao            String
+  qtd                  Decimal  @db.Decimal(14, 3)
+  valTotalLiquido      Decimal  @db.Decimal(14, 2)
+
+  idLoja               String?
+  loja                 Loja?    @relation(fields: [idLoja], references: [id], onDelete: SetNull)
+
+  criadoEm DateTime @default(now())
+
+  @@unique([idLoja, data, idMercadoriaVariacao])
+  @@index([data])
+  @@index([idLoja, data])
+}
+
+model ComissaoDia {
+  id               String   @id @default(uuid())
+  data             DateTime @db.Date
+  nomeFuncionario  String
+  valTotalLiquido  Decimal  @db.Decimal(14, 2)
+  valTotalComissao Decimal  @db.Decimal(14, 2)
+
+  idLoja           String?
+  loja             Loja?    @relation(fields: [idLoja], references: [id], onDelete: SetNull)
+
+  criadoEm DateTime @default(now())
+
+  @@unique([idLoja, data, nomeFuncionario])
+  @@index([data])
+  @@index([idLoja, data])
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// 2. Snapshot / upsert — estado corrente
+// ─────────────────────────────────────────────────────────────────────────
+
+model Produto {
+  codigoMercadoriaVariacao String  @id
+  descricao                String
+  codigoBarras             String
+  referenciaMercadoria     String
+  embalagem                String
+  idMarca                  String
+  idSecao                  String?
+  nomeSecao                String?
+  qtdEstoqueMinimo         Decimal @db.Decimal(14, 3)
+  qtdEstoqueMaximo         Decimal @db.Decimal(14, 3)
+  ativo                    Boolean
+
+  idLoja                   String?
+  loja                     Loja?   @relation(fields: [idLoja], references: [id], onDelete: SetNull)
+
+  atualizadoEm DateTime @updatedAt
+
+  @@index([descricao])
+  @@index([idLoja, descricao])
+  @@index([idLoja, idSecao])
+}
+
+model Pessoa {
+  codigo         String  @id
+  razaoSocial    String
+  fantasia       String
+  tipo           String
+  cnpjCpf        String
+  dataCadastro   String
+  ativo          Boolean
+  contatoFone    String?
+  contatoCelular String?
+  contatoEmail   String?
+  uf             String?
+
+  idLoja         String?
+  loja           Loja?   @relation(fields: [idLoja], references: [id], onDelete: SetNull)
+
+  atualizadoEm DateTime @updatedAt
+
+  @@index([razaoSocial])
+  @@index([cnpjCpf])
+  @@index([idLoja, razaoSocial])
+}
+
+model FormaPagamentoDim {
+  codigo        String  @id
+  descricao     String
+  idTipo        String
+  tipoDescricao String
+  aVista        Boolean
+  ativo         Boolean
+
+  idLoja        String?
+  loja          Loja?   @relation(fields: [idLoja], references: [id], onDelete: SetNull)
+
+  atualizadoEm DateTime @updatedAt
+
+  @@index([idLoja])
+}
+
+model LocalEstoque {
+  codigo    String  @id
+  descricao String
+  ativo     Boolean
+
+  idLoja    String?
+  loja      Loja?   @relation(fields: [idLoja], references: [id], onDelete: SetNull)
+
+  saldos SaldoEstoque[]
+
+  atualizadoEm DateTime @updatedAt
+
+  @@index([idLoja])
+}
+
+model SaldoEstoque {
+  id                   String       @id @default(uuid())
+  idLocal              String
+  local                LocalEstoque @relation(fields: [idLocal], references: [codigo], onDelete: Cascade)
+  idMercadoriaVariacao String
+  qtdSaldo             Decimal      @db.Decimal(14, 3)
+  qtdSaldoReserva      Decimal      @db.Decimal(14, 3)
+  dataHora             String
+
+  atualizadoEm DateTime @updatedAt
+
+  @@unique([idLocal, idMercadoriaVariacao])
+}
+
+model Empresa {
+  id          String  @id @default("default")
+  fantasia    String
+  razaoSocial String
+  cnpjCpf     String
+  municipio   String
+  uf          String
+  logo        String?
+
+  atualizadoEm DateTime @updatedAt
+}
+
+model ContaPendente {
+  id            String    @id @default(uuid())
+  tipo          TipoConta
+  idDocumento   String
+  idDocumentoErp String?
+  idPessoa      String?
+  idSequencia   String?
+  idParcela     String?
+  numero        String
+  nome          String
+  descricao     String
+  dtLancamento  DateTime  @db.Date
+  dtVencimento  DateTime  @db.Date
+  dtPagamento   DateTime? @db.Date
+  valOrigem     Decimal   @db.Decimal(14, 2)
+  valPago       Decimal   @db.Decimal(14, 2)
+  valDesconto   Decimal   @db.Decimal(14, 2)
+  valSaldo      Decimal   @db.Decimal(14, 2)
+  status        String
+  aindaPendente Boolean   @default(true)
+  liquidadaEm   DateTime?
+
+  idLoja        String?
+  loja          Loja?     @relation(fields: [idLoja], references: [id], onDelete: SetNull)
+
+  atualizadoEm DateTime @updatedAt
+
+  @@unique([tipo, idDocumento])
+  @@index([idLoja, tipo, idPessoa])
+  @@index([tipo, aindaPendente, dtVencimento])
+  @@index([idLoja, tipo, aindaPendente, dtVencimento])
+}
+
+enum TipoConta {
+  RECEBER
+  PAGAR
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// Controle de sincronização
+// ─────────────────────────────────────────────────────────────────────────
+
+model SyncLog {
+  id                   String       @id @default(uuid())
+  entidade             EntidadeSync
+  dataReferencia       DateTime?    @db.Date
+  status               StatusSync
+  registrosProcessados Int          @default(0)
+  erro                 String?
+  executadoEm          DateTime     @default(now())
+
+  idLoja               String?
+  loja                 Loja?        @relation(fields: [idLoja], references: [id], onDelete: SetNull)
+
+  @@index([entidade, dataReferencia])
+  @@index([entidade, executadoEm])
+  @@index([idLoja, entidade, dataReferencia])
+  @@index([idLoja, entidade, executadoEm])
+}
+
+enum EntidadeSync {
+  VENDA
+  ITEM_VENDIDO
+  COMISSAO
+  PRODUTO
+  PESSOA
+  FORMA_PAGAMENTO
+  ESTOQUE
+  EMPRESA
+  CONTA_RECEBER
+  CONTA_PAGAR
+}
+
+enum StatusSync {
+  SUCESSO
+  ERRO
+}

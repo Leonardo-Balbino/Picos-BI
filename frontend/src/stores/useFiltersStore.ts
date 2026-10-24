@@ -96,12 +96,24 @@ export const useFiltersStore = defineStore('filters', {
       this.setDiaEspecifico(paraDataApi(anterior))
     },
 
+    voltarDiaAnterior() {
+      this.irParaDiaAnterior()
+    },
+
     irParaDiaSeguinte() {
       const hojeStr = paraDataApi(new Date())
       if (this.dataAtivaIso >= hojeStr) return
       const dataAtual = parseDataLocal(this.dataAtivaIso)
       const seguinte = addDias(dataAtual, 1)
       this.setDiaEspecifico(paraDataApi(seguinte))
+    },
+
+    avancarProximoDia() {
+      this.irParaDiaSeguinte()
+    },
+
+    setDiaAnterior() {
+      this.setOntem()
     },
 
     setRangePersonalizado(inicio: string, fim: string) {

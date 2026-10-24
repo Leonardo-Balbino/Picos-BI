@@ -1,10 +1,8 @@
 /**
  * Cliente HTTP do backend do PICOS Analytics (`../backend`) — não fala mais direto com a API
  * Meu ERP Online. O backend já sincroniza os dados em segundo plano e cacheia as leituras mais
- * pesadas (Redis), então não existe mais rate limit a respeitar aqui: sem fila serializada, sem
- * backoff em 429 — só um `fetch` simples com a chave de API do backend.
- *
- * GET-only por construção (nenhuma função aceita parâmetro de método) — este front só lê dados.
+ * pesadas (Redis). O navegador autentica com JWT e não precisa da chave de API do servidor.
+ * Leituras GET iguais e simultâneas compartilham a mesma promessa.
  */
 import { useUiStore } from '@/stores/useUiStore'
 
@@ -38,9 +36,10 @@ interface EnvelopePaginado<TRaw> {
 export type QueryParams = Record<string, string | number | boolean | undefined>
 
 const BASE_URL = import.meta.env.VITE_BACKEND_API_URL
-const API_KEY = import.meta.env.VITE_BACKEND_API_KEY
 
 const cache = new Map<string, unknown>()
+const pendentes = new Map<string, Promise<unknown>>()
+let geracaoCache = 0
 
 function montarUrl(path: string, params?: QueryParams): string {
   const url = new URL(`${BASE_URL}${path}`, window.location.origin)
@@ -60,7 +59,6 @@ async function requisitar(url: string, signal?: AbortSignal): Promise<Response> 
   const token = sessionStorage.getItem('picos_token') || localStorage.getItem('picos_token')
   const headers: Record<string, string> = {
     Accept: 'application/json',
-    'X-API-Key': API_KEY ?? '',
   }
   if (token) {
     headers['Authorization'] = `Bearer ${token}`
@@ -98,14 +96,31 @@ async function requisitar(url: string, signal?: AbortSignal): Promise<Response> 
   return resposta
 }
 
-/** GET simples, com cache por sessão (chave = path + params ordenados). */
+/** GET com cache por sessão e compartilhamento de chamadas simultâneas. */
 export async function apiGet<TRaw>(path: string, params?: QueryParams, signal?: AbortSignal): Promise<TRaw> {
   const chave = chaveCache(path, params)
   if (cache.has(chave)) return cache.get(chave) as TRaw
-  const resposta = await requisitar(montarUrl(path, params), signal)
-  const dados = (await resposta.json()) as TRaw
-  cache.set(chave, dados)
-  return dados
+  if (!signal && pendentes.has(chave)) return pendentes.get(chave) as Promise<TRaw>
+
+  const geracao = geracaoCache
+  const pedido = (async () => {
+    const resposta = await requisitar(montarUrl(path, params), signal)
+    const dados = (await resposta.json()) as TRaw
+    if (geracao === geracaoCache && !signal?.aborted) cache.set(chave, dados)
+    return dados
+  })()
+  if (!signal) pendentes.set(chave, pedido)
+  try {
+    return await pedido
+  } finally {
+    if (pendentes.get(chave) === pedido) pendentes.delete(chave)
+  }
+}
+
+/** Leitura de status em tempo real, sem reutilizar o cache da sessão. */
+export async function apiGetAtual<T>(path: string, params?: QueryParams): Promise<T> {
+  const resposta = await requisitar(montarUrl(path, params))
+  return resposta.json() as Promise<T>
 }
 
 /**
@@ -120,6 +135,7 @@ export async function fetchAllPages<TItem>(
   onProgress?: (pagina: number, totalPaginas: number) => void,
   signal?: AbortSignal,
 ): Promise<TItem[]> {
+  const geracao = geracaoCache
   const chaveBase = chaveCache(path, params)
   if (cache.has(chaveBase)) return cache.get(chaveBase) as TItem[]
 
@@ -139,13 +155,15 @@ export async function fetchAllPages<TItem>(
     page++
   } while (page <= totalPaginas)
 
-  cache.set(chaveBase, resultado)
+  if (geracao === geracaoCache && !signal?.aborted) cache.set(chaveBase, resultado)
   return resultado
 }
 
 /** Limpa o cache em memória (usado no logout, para não vazar dados de uma empresa pra outra). */
 export function limparCacheApi(): void {
+  geracaoCache++
   cache.clear()
+  pendentes.clear()
 }
 
 /** Executa requisições POST autenticadas (ex: /auth/login). */
@@ -155,7 +173,6 @@ export async function apiPost<TResponse, TBody = unknown>(path: string, body: TB
   const headers: Record<string, string> = {
     Accept: 'application/json',
     'Content-Type': 'application/json',
-    'X-API-Key': API_KEY ?? '',
   }
   if (token) {
     headers['Authorization'] = `Bearer ${token}`
@@ -189,7 +206,6 @@ export async function apiPut<TResponse, TBody = unknown>(path: string, body: TBo
   const headers: Record<string, string> = {
     Accept: 'application/json',
     'Content-Type': 'application/json',
-    'X-API-Key': API_KEY ?? '',
   }
   if (token) {
     headers['Authorization'] = `Bearer ${token}`

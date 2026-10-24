@@ -40,15 +40,22 @@ const options = computed<ApexOptions>(() =>
     chart: { type: 'line', height: props.height },
     colors: [CHART_COLORS.roxo, CHART_COLORS.ambar],
     stroke: { width: [0, 3], curve: 'smooth' },
+    dataLabels: {
+      enabled: true, enabledOnSeries: [0], offsetY: -18,
+      style: { colors: ['#000000'], fontSize: '11px', fontWeight: 600 },
+      background: { enabled: false }, dropShadow: { enabled: false },
+      formatter: (v: number) => formatCompact(v),
+    },
+    grid: { padding: { top: 25 } },
     markers: { size: [0, 3] },
-    plotOptions: { bar: { columnWidth: '65%', borderRadius: 3 } },
+    plotOptions: { bar: { columnWidth: '65%', borderRadius: 3, dataLabels: { position: 'top' } } },
     legend: { show: false },
     xaxis: {
       categories: props.categorias,
       labels: { rotate: -45, style: { fontSize: '10px' } },
     },
     yaxis: [
-      { title: { text: 'Faturamento' }, labels: { formatter: (v: number) => formatCompact(v) } },
+      { min: 0, max: (v: number) => v > 0 ? v * 1.2 : 1, title: { text: 'Faturamento' }, labels: { formatter: (v: number) => formatCompact(v) } },
       {
         opposite: true,
         min: 0,
@@ -69,5 +76,7 @@ const options = computed<ApexOptions>(() =>
 </script>
 
 <template>
-  <VueApexCharts type="line" :options="options" :series="series" :height="height" />
+  <div class="overflow-x-auto"><div :style="{ minWidth: categorias.length > 5 ? categorias.length * 76 + 'px' : undefined }">
+    <VueApexCharts type="line" :options="options" :series="series" :height="height" />
+  </div></div>
 </template>

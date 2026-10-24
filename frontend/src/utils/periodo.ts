@@ -13,26 +13,23 @@ export const JANELA_FATURAMENTO_DIAS = 365
 
 export const JANELA_MAXIMA_DIAS = JANELA_FATURAMENTO_DIAS
 
-export function inicioDoDia(d: Date): Date {
+function inicioDoDia(d: Date): Date {
   const x = new Date(d)
   x.setHours(0, 0, 0, 0)
   return x
 }
-
-export function fimDoDia(d: Date): Date {
+function fimDoDia(d: Date): Date {
   const x = new Date(d)
   x.setHours(23, 59, 59, 999)
   return x
 }
-
 export function addDias(d: Date, n: number): Date {
   return new Date(d.getTime() + n * 86400000)
 }
 
-/** Faz o parse seguro de YYYY-MM-DD para Date local (evita drift de fuso horário UTC). */
-export function parseDataLocal(iso: string): Date {
-  const [ano, mes, dia] = iso.split('-').map(Number)
-  return new Date(ano, mes - 1, dia)
+export function parseDataLocal(dataIso: string): Date {
+  const [ano, mes, dia] = dataIso.split('-').map(Number)
+  return new Date(ano, (mes || 1) - 1, dia || 1)
 }
 
 export function resolverIntervalo(periodo: PeriodoPreset, range: PeriodoRange, agora: Date = new Date()): Intervalo {
@@ -41,7 +38,7 @@ export function resolverIntervalo(periodo: PeriodoPreset, range: PeriodoRange, a
     switch (periodo) {
       case 'dia':
         return { inicio: inicioDoDia(agora), fim }
-      case 'ontem': {
+      case 'dia-anterior': {
         const ontem = addDias(agora, -1)
         return { inicio: inicioDoDia(ontem), fim: fimDoDia(ontem) }
       }
@@ -54,11 +51,19 @@ export function resolverIntervalo(periodo: PeriodoPreset, range: PeriodoRange, a
       case 'ano':
         // Faturamento com registro de 1 ano completo (365 dias)
         return { inicio: inicioDoDia(addDias(agora, -(JANELA_FATURAMENTO_DIAS - 1))), fim }
-      case 'personalizado':
+      case 'personalizado': {
+        const ontem = addDias(agora, -1)
+        const inicioParsed = range.inicio ? inicioDoDia(new Date(range.inicio + 'T00:00:00')) : inicioDoDia(ontem)
+        const fimParsed = range.fim
+          ? fimDoDia(new Date(range.fim + 'T00:00:00'))
+          : (range.inicio ? fimDoDia(new Date(range.inicio + 'T00:00:00')) : fimDoDia(ontem))
         return {
-          inicio: range.inicio ? inicioDoDia(parseDataLocal(range.inicio)) : inicioDoDia(addDias(agora, -(JANELA_PADRAO_DIAS - 1))),
-          fim: range.fim ? fimDoDia(parseDataLocal(range.fim)) : fim,
+          inicio: inicioParsed,
+          fim: fimParsed,
         }
+      }
+      case 'mes-anterior':
+        return { inicio: new Date(agora.getFullYear(), agora.getMonth() - 1, 1), fim: fimDoDia(new Date(agora.getFullYear(), agora.getMonth(), 0)) }
       case 'mes':
       default:
         return { inicio: new Date(agora.getFullYear(), agora.getMonth(), 1), fim }
@@ -81,3 +86,8 @@ export function paraDataApi(d: Date): string {
   const pad = (n: number) => String(n).padStart(2, '0')
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
 }
+
+export function obterDiaAnteriorIso(agora: Date = new Date()): string {
+  return paraDataApi(addDias(agora, -1))
+}
+

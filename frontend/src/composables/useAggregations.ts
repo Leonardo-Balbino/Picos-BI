@@ -5,7 +5,6 @@ import { useDimensoesStore } from '@/stores/useDimensoesStore'
 import { useLojasStore } from '@/stores/useLojasStore'
 import { resolverIntervalo, type Intervalo } from '@/utils/periodo'
 import { formatShortDate } from '@/utils/formatters'
-import type { Venda } from '@/types'
 
 const DIAS_SEMANA = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb']
 
@@ -31,8 +30,8 @@ export interface ComparativoLojaLinha extends Record<string, unknown> {
   faturamento: number
   numeroVendas: number
   ticketMedio: number
-  custoTotal: number
-  cmvPercentual: number
+  custoTotal: number | null
+  cmvPercentual: number | null
   percentualFaturamento: number
 }
 
@@ -45,253 +44,153 @@ export interface FormaPagamentoLinha extends Record<string, unknown> {
   percentual: number
 }
 
-/**
- * Agregações client-side sobre `useVendasStore` (já filtrado pelo período/`DataInicio`-`DataFim`
- * atual — não há necessidade de refiltrar por data aqui, só pelo PDV opcional). Nenhuma função
- * aqui dispara requisição própria: tudo lê do que a store já carregou para o período
- * selecionado, para nunca buscar dados fora do intervalo escolhido nos filtros globais.
- * "Vendas de Hoje" e a variação vs. período anterior foram removidas por causa disso — exigiam
- * uma consulta extra fora do período (ver histórico do commit se precisar reintroduzir).
- */
+/** Lê séries e indicadores já calculados no backend; não transfere o histórico bruto ao painel. */
 export function useAggregations() {
   const vendasStore = useVendasStore()
   const filters = useFiltersStore()
   const dimensoes = useDimensoesStore()
   const lojasStore = useLojasStore()
-
   const intervalo = computed<Intervalo>(() => resolverIntervalo(filters.periodo, filters.range))
-
-  const documentos = computed<Venda[]>(() => {
-    let base = vendasStore.documentos
-
-    // Filtro Multiloja: se houver lojas selecionadas, filtra por elas
-    if (filters.lojasSelecionadas && filters.lojasSelecionadas.length > 0) {
-      base = base.filter((v) => {
-        // Usa exclusivamente o idLoja da venda, sem confundir idCaixa com loja
-        return v.idLoja ? filters.lojasSelecionadas.includes(v.idLoja) : false
-      })
-    }
-
-    // Filtro de PDV/Caixa: quando 'todos', usa todos os caixas das lojas selecionadas
-    if (filters.idCaixa && filters.idCaixa !== 'todos') {
-      base = base.filter((v) => v.idCaixa === filters.idCaixa)
-    }
-
-    return base
+  const resumo = computed(() => vendasStore.resumo)
+  const kpisGerais = computed(() => resumo.value?.kpisGerais ?? {
+    totalPeriodo: 0,
+    custoTotal: null,
+    lucroBruto: null,
+    margemLucro: null,
+    vendasSemCusto: 0,
+    ticketMedio: 0,
+    cmvPercentual: 0,
+    numeroVendas: 0,
+    vendasHoje: 0,
+    isCustoEstimado: false,
   })
 
-  function valor(v: Venda): number {
-    return v.valTotal ?? 0
-  }
-
-  function custo(v: Venda): number {
-    // Estimativa benchmark do setor de açaí (35% do faturamento)
-    return v.custoTotal ?? (valor(v) * 0.35)
-  }
-
-  // Vendas elegíveis (vendas válidas com valor positivo)
-  const vendasElegiveis = computed(() => documentos.value.filter((v) => (v.valTotal ?? 0) > 0))
-  const totalPeriodo = computed(() => vendasElegiveis.value.reduce((acc, v) => acc + valor(v), 0))
-  const custoTotal = computed(() => vendasElegiveis.value.reduce((acc, v) => acc + custo(v), 0))
-  const numeroVendas = computed(() => vendasElegiveis.value.length)
-  // Ticket médio = Faturamento total / Quantidade total de vendas elegíveis
-  const ticketMedio = computed(() => (numeroVendas.value > 0 ? totalPeriodo.value / numeroVendas.value : 0))
-  const cmvPercentual = computed(() => (totalPeriodo.value > 0 ? (custoTotal.value / totalPeriodo.value) * 100 : 0))
-  const isCustoEstimado = computed(() => true)
-
-  // Só soma "hoje" dentro do que já está carregado
-  const vendasHoje = computed(() => {
-    const hoje = new Date()
-    const hojeChave = `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, '0')}-${String(hoje.getDate()).padStart(2, '0')}`
-    return documentos.value
-      .filter((v) => v.dataHora.slice(0, 10) === hojeChave)
-      .reduce((acc, v) => acc + valor(v), 0)
-  })
-
-  const kpisGerais = computed(() => ({
-    totalPeriodo: totalPeriodo.value,
-    custoTotal: custoTotal.value,
-    ticketMedio: ticketMedio.value,
-    cmvPercentual: cmvPercentual.value,
-    numeroVendas: numeroVendas.value,
-    vendasHoje: vendasHoje.value,
-    isCustoEstimado: isCustoEstimado.value,
-  }))
-
-  // Comparativo Lado a Lado genuíno entre unidades
   const comparativoLojas = computed<ComparativoLojaLinha[]>(() => {
-    const lojas = lojasStore.lojas
-    let idsLojas: string[] = []
-
-    if (filters.lojasSelecionadas && filters.lojasSelecionadas.length > 0) {
-      idsLojas = filters.lojasSelecionadas
-    } else {
-      const idsPresentes = Array.from(new Set(vendasStore.documentos.map((d) => d.idLoja).filter(Boolean))) as string[]
-      idsLojas = idsPresentes.length > 0 ? idsPresentes : lojas.map((l) => l.id)
-    }
-
-    const totalConsolidado = totalPeriodo.value
-
-    return idsLojas
-      .map((idLoja) => {
-        const lojaObj = lojas.find((l) => l.id === idLoja)
-        const vendasLoja = vendasElegiveis.value.filter((v) => v.idLoja === idLoja)
-        const faturamento = vendasLoja.reduce((acc, v) => acc + valor(v), 0)
-        const nVendas = vendasLoja.length
-        const ticket = nVendas > 0 ? faturamento / nVendas : 0
-        const cTotal = faturamento * 0.35
-        const perc = totalConsolidado > 0 ? (faturamento / totalConsolidado) * 100 : 0
-
-        return {
-          idLoja,
-          nomeLoja: lojaObj?.nome ?? (idLoja === 'loja-inhuma' ? 'Açaí Senses - Inhuma' : idLoja),
-          cidade: lojaObj?.cidade ?? '',
-          uf: lojaObj?.uf ?? '',
-          faturamento: Math.round(faturamento * 100) / 100,
-          numeroVendas: nVendas,
-          ticketMedio: Math.round(ticket * 100) / 100,
-          custoTotal: Math.round(cTotal * 100) / 100,
-          cmvPercentual: 35,
-          percentualFaturamento: Math.round(perc * 10) / 10,
-        }
-      })
-      .sort((a, b) => b.faturamento - a.faturamento)
+    const ids = filters.lojasSelecionadas.length > 0
+      ? filters.lojasSelecionadas
+      : resumo.value?.idsLojasPresentes.length
+        ? resumo.value.idsLojasPresentes
+        : lojasStore.lojas.map((l) => l.id)
+    const total = kpisGerais.value.totalPeriodo
+    return ids.map((idLoja: string) => {
+      const loja = lojasStore.lojas.find((l) => l.id === idLoja)
+      const dados = resumo.value?.comparativo.find((c: { idLoja: string; faturamento: number; numeroVendas: number }) => c.idLoja === idLoja)
+      const faturamento = dados?.faturamento ?? 0
+      const numeroVendas = dados?.numeroVendas ?? 0
+      return {
+        idLoja,
+        nomeLoja: loja?.nome ?? (idLoja === 'loja-inhuma' ? 'Açaí Senses - Inhuma' : idLoja),
+        cidade: loja?.cidade ?? '',
+        uf: loja?.uf ?? '',
+        faturamento: Math.round(faturamento * 100) / 100,
+        numeroVendas,
+        ticketMedio: numeroVendas ? Math.round((faturamento / numeroVendas) * 100) / 100 : 0,
+        custoTotal: null,
+        cmvPercentual: null,
+        percentualFaturamento: total ? Math.round((faturamento / total) * 1000) / 10 : 0,
+      }
+    }).sort((a: ComparativoLojaLinha, b: ComparativoLojaLinha) => b.faturamento - a.faturamento)
   })
 
-  function serieTemporalFaturamento() {
-    const mapa = new Map<string, number>()
-    for (const v of documentos.value) {
-      mapa.set(v.dataHora.slice(0, 10), (mapa.get(v.dataHora.slice(0, 10)) ?? 0) + valor(v))
-    }
-    const totalDias = Math.max(
-      1,
-      Math.round((intervalo.value.fim.getTime() - intervalo.value.inicio.getTime()) / 86400000) + 1,
-    )
-    const categorias: string[] = []
-    const valores: number[] = []
+  function serieTemporalFaturamento(agruparSemanas = true) {
+    const mapa = resumo.value?.serieTemporal ?? {}
+    const totalDias = Math.max(1, Math.floor((intervalo.value.fim.getTime() - intervalo.value.inicio.getTime()) / 86400000) + 1)
+    const dias: Date[] = []
+    const valoresDiarios: number[] = []
     for (let i = 0; i < totalDias; i++) {
       const dia = new Date(intervalo.value.inicio.getTime() + i * 86400000)
-      const chave = `${dia.getFullYear()}-${String(dia.getMonth() + 1).padStart(2, '0')}-${String(dia.getDate()).padStart(2, '0')}`
-      categorias.push(formatShortDate(dia))
-      valores.push(Math.round((mapa.get(chave) ?? 0) * 100) / 100)
+      const chave = [dia.getFullYear(), String(dia.getMonth() + 1).padStart(2, '0'), String(dia.getDate()).padStart(2, '0')].join('-')
+      dias.push(dia)
+      valoresDiarios.push(mapa[chave] ?? 0)
     }
-    return { categorias, valores }
+
+    // O gráfico anual tinha 365 pontos e rótulos no DOM. A API conserva os totais diários;
+    // apenas a apresentação agrupa períodos longos em blocos de sete dias.
+    if (agruparSemanas && totalDias > 90) {
+      const categorias: string[] = []
+      const valores: number[] = []
+      for (let inicio = 0; inicio < totalDias; inicio += 7) {
+        const fim = Math.min(inicio + 6, totalDias - 1)
+        categorias.push(formatShortDate(dias[inicio]) + '–' + formatShortDate(dias[fim]))
+        const total = valoresDiarios.slice(inicio, fim + 1).reduce((soma, valor) => soma + valor, 0)
+        valores.push(Math.round(total * 100) / 100)
+      }
+      return { categorias, valores, granularidade: 'semana' as const }
+    }
+
+    return {
+      categorias: dias.map(formatShortDate),
+      valores: valoresDiarios.map((valor) => Math.round(valor * 100) / 100),
+      granularidade: 'dia' as const,
+    }
   }
 
   function vendasPorDiaSemana() {
-    const somas = new Array(7).fill(0)
-    for (const v of vendasElegiveis.value) {
-      // Extrai YYYY-MM-DD da data respeitando a data civil da venda (timezone-safe)
-      const dataStr = v.dataHora.slice(0, 10)
-      const [ano, mes, dia] = dataStr.split('-').map(Number)
-      if (ano && mes && dia) {
-        // Date.UTC garante cálculo determinístico do dia da semana (0=Dom..6=Sáb) sem desvio de fuso
-        const diaSemanaIndex = new Date(Date.UTC(ano, mes - 1, dia)).getUTCDay()
-        somas[diaSemanaIndex] += valor(v)
-      }
-    }
+    const somas = resumo.value?.porDiaSemana ?? Array<number>(7).fill(0)
     const maxVal = Math.max(...somas)
     const highlightIndex = maxVal > 0 ? somas.indexOf(maxVal) : -1
-    const diaMaiorFaturamento = highlightIndex >= 0 ? DIAS_SEMANA[highlightIndex] : 'N/A'
-
     return {
       categorias: DIAS_SEMANA,
-      valores: somas.map((v) => Math.round(v * 100) / 100),
+      valores: somas.map((v: number) => Math.round(v * 100) / 100),
       highlightIndex,
-      diaMaiorFaturamento,
+      diaMaiorFaturamento: highlightIndex >= 0 ? DIAS_SEMANA[highlightIndex] : 'N/A',
       valorMaiorFaturamento: maxVal,
     }
   }
 
   function vendasPorPDV() {
-    const mapa = new Map<string, number>()
-    for (const v of documentos.value) mapa.set(v.idCaixa, (mapa.get(v.idCaixa) ?? 0) + valor(v))
-    const linhas = Array.from(mapa.entries())
-      .map(([idCaixa, total]) => ({ idCaixa, label: `Caixa ${idCaixa}`, total }))
-      .sort((a, b) => b.total - a.total)
-    return { categorias: linhas.map((l) => l.label), valores: linhas.map((l) => l.total) }
+    const linhas = resumo.value?.porPDV ?? []
+    return { categorias: linhas.map((l: { idCaixa: string; total: number }) => 'Caixa ' + l.idCaixa), valores: linhas.map((l: { idCaixa: string; total: number }) => l.total) }
   }
 
   function vendasPorHora() {
-    const valores = new Array(24).fill(0)
-    for (const v of vendasElegiveis.value) {
-      // Extrai a hora civil registrada no PDV local (índice 11..13 em 'YYYY-MM-DDTHH:mm:ss')
-      const horaStr = v.dataHora.length >= 13 ? v.dataHora.slice(11, 13) : ''
-      const hora = parseInt(horaStr, 10)
-      if (!isNaN(hora) && hora >= 0 && hora < 24) {
-        valores[hora] += valor(v)
-      }
-    }
-    const maxVal = Math.max(...valores)
-    const highlightIndex = maxVal > 0 ? valores.indexOf(maxVal) : -1
-    const horaPico = highlightIndex >= 0 ? `${highlightIndex}h` : 'N/A'
-
+    const valores = resumo.value?.porHora ?? Array<number>(24).fill(0)
+    const ativos = valores.map((v: number, i: number) => v > 0 ? i : -1).filter((i: number) => i >= 0)
+    const inicio = ativos[0] ?? 0
+    const fim = ativos[ativos.length - 1] ?? 23
+    const exibidos = valores.slice(inicio, fim + 1)
+    const maxVal = Math.max(...exibidos)
+    const destaque = maxVal > 0 ? exibidos.indexOf(maxVal) : -1
     return {
-      categorias: Array.from({ length: 24 }, (_, h) => `${h}h`),
-      valores: valores.map((v) => Math.round(v * 100) / 100),
-      highlightIndex,
-      horaPico,
+      categorias: exibidos.map((_: number, i: number) => String(inicio + i) + 'h'),
+      valores: exibidos.map((v: number) => Math.round(v * 100) / 100),
+      highlightIndex: destaque,
+      horaPico: destaque >= 0 ? String(inicio + destaque) + 'h' : 'N/A',
       valorPico: maxVal,
     }
   }
 
   function porFormaPagamento(): FormaPagamentoLinha[] {
-    const somas = new Map<string, number>()
-    const transacoes = new Map<string, number>()
-    for (const v of documentos.value) {
-      for (const p of v.pagamentos) {
-        somas.set(p.idPagamento, (somas.get(p.idPagamento) ?? 0) + p.valor)
-        transacoes.set(p.idPagamento, (transacoes.get(p.idPagamento) ?? 0) + 1)
-      }
+    const linhas = resumo.value?.pagamentos ?? []
+    const grupos = new Map<string, { label: string; valor: number; nTransacoes: number }>()
+
+    for (const p of linhas) {
+      const label = dimensoes.labelFormaPagamento(p.idPagamento, (p as any).descricao)
+      const atual = grupos.get(label) ?? { label, valor: 0, nTransacoes: 0 }
+      atual.valor += p.valor
+      atual.nTransacoes += p.nTransacoes
+      grupos.set(label, atual)
     }
-    const total = Array.from(somas.values()).reduce((a, b) => a + b, 0)
-    return Array.from(somas.entries())
-      .map(([idPagamento, valorForma]) => {
-        const nTransacoes = transacoes.get(idPagamento) ?? 0
-        return {
-          idPagamento,
-          label: dimensoes.labelFormaPagamento(idPagamento),
-          valor: valorForma,
-          nTransacoes,
-          ticketMedio: nTransacoes ? valorForma / nTransacoes : 0,
-          percentual: total ? (valorForma / total) * 100 : 0,
-        }
-      })
+
+    const total = Array.from(grupos.values()).reduce((acc, g) => acc + g.valor, 0)
+    return Array.from(grupos.entries())
+      .map(([id, g]) => ({
+        idPagamento: id,
+        label: g.label,
+        valor: Math.round(g.valor * 100) / 100,
+        nTransacoes: g.nTransacoes,
+        ticketMedio: g.nTransacoes ? Math.round((g.valor / g.nTransacoes) * 100) / 100 : 0,
+        percentual: total ? (g.valor / total) * 100 : 0,
+      }))
       .sort((a, b) => b.valor - a.valor)
   }
-
-  const tabelaVendas = computed<VendaExibicao[]>(() =>
-    [...documentos.value]
-      .map((v) => ({
-        codigo: v.codigo,
-        dataHora: v.dataHora,
-        numero: v.numero,
-        serie: v.serie,
-        modeloDescricao: v.modeloDescricao,
-        idCaixa: v.idCaixa,
-        idLoja: v.idLoja,
-        nomeLoja: v.nomeLoja,
-        nomeUsuario: v.nomeUsuario,
-        valTotal: valor(v),
-        statusDescricao: v.statusDescricao,
-      }))
-      .sort((a, b) => b.dataHora.localeCompare(a.dataHora)),
-  )
 
   function topItensVendidos(n: number) {
     return [...vendasStore.itensVendidos].sort((a, b) => b.valTotalLiquido - a.valTotalLiquido).slice(0, n)
   }
 
   return {
-    intervalo,
-    kpisGerais,
-    comparativoLojas,
-    serieTemporalFaturamento,
-    vendasPorDiaSemana,
-    vendasPorPDV,
-    vendasPorHora,
-    porFormaPagamento,
-    tabelaVendas,
-    topItensVendidos,
+    intervalo, kpisGerais, comparativoLojas, serieTemporalFaturamento,
+    vendasPorDiaSemana, vendasPorPDV, vendasPorHora, porFormaPagamento, topItensVendidos,
   }
 }

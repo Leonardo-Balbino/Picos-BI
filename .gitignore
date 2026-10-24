@@ -27,4 +27,4 @@ generated
 *.sw?
 .vercel
 .env*
-PowerBi-Backend/
+backups/

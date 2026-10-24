@@ -1,5 +1,6 @@
 import { useFiltersStore } from '@/stores/useFiltersStore'
 import { useVendasStore } from '@/stores/useVendasStore'
+import { useSyncStore } from '@/stores/useSyncStore'
 import { limparCacheApi } from '@/services/api'
 import { resolverIntervalo, paraDataApi } from '@/utils/periodo'
 
@@ -15,13 +16,15 @@ export function useRecarregarDados() {
 
   function carregar() {
     const { inicio, fim } = periodoAtualISO()
-    return vendas.carregarPeriodo(inicio, fim)
+    return vendas.carregarPeriodo(inicio, fim, filters.lojasSelecionadas.slice().sort().join(','), filters.idCaixa)
   }
 
-  function forcarAtualizacao() {
+  async function forcarAtualizacao() {
     limparCacheApi()
     vendas.carregado = false
-    return carregar()
+    await Promise.all([carregar(), useSyncStore().consultar(filters.lojasSelecionadas.slice().sort().join(','))])
+    vendas.revisao++
+    return !vendas.erro
   }
 
   return { periodoAtualISO, carregar, forcarAtualizacao }

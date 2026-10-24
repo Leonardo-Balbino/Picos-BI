@@ -4,6 +4,8 @@ import { useRouter } from 'vue-router'
 import { DropdownMenuRoot, DropdownMenuTrigger, DropdownMenuPortal, DropdownMenuContent, DropdownMenuItem } from 'reka-ui'
 import { useAuthStore } from '@/stores/useAuthStore'
 import { useEmpresaStore } from '@/stores/useEmpresaStore'
+import { useFiltersStore } from '@/stores/useFiltersStore'
+import { useLojasStore } from '@/stores/useLojasStore'
 import { useUiStore } from '@/stores/useUiStore'
 import { iniciais } from '@/utils/statusMaps'
 
@@ -12,7 +14,17 @@ const empresa = useEmpresaStore()
 const ui = useUiStore()
 const router = useRouter()
 
-const nomeEmpresa = computed(() => empresa.dados?.fantasia || empresa.dados?.razaoSocial || '')
+const filters = useFiltersStore()
+const lojasStore = useLojasStore()
+const nomeEmpresa = computed(() => {
+  if (auth.isMatrizAdmin) {
+    if (filters.lojasSelecionadas.length === 1) {
+      return lojasStore.lojas.find((loja) => loja.id === filters.lojasSelecionadas[0])?.nome || 'Picos BI'
+    }
+    return 'Picos BI — empresas independentes'
+  }
+  return empresa.dados?.fantasia || empresa.dados?.razaoSocial || auth.usuario?.nome || ''
+})
 
 function handleLogout() {
   auth.logout()

@@ -1,0 +1,105 @@
+# Compose de PRODUÇÃO — VPS consolidada multi-cliente (mesmo padrão do
+# Picos-gestao-back, ver MIGRACAO.md deste repositório).
+#
+# Diferenças deliberadas em relação ao docker-compose.yml de dev:
+# - Sem serviço de Postgres: o banco é central e compartilhado entre os
+#   clientes da VPS, vive fora deste repositório.
+# - Redis CONTINUA local a este cliente (decisão registrada em MIGRACAO.md:
+#   diferente do Postgres, não existe "Redis central multi-tenant" nesta
+#   migração — cada cliente que precisa de Redis sobe o seu próprio, preso
+#   à mesma rede net_powerbi, sem porta publicada). Perder o volume do Redis
+#   não é incidente: o cache é inteiramente reconstruível a partir do
+#   Postgres (mesmo comportamento do `redis-server --save '' --appendonly
+#   no` já usado em dev).
+# - Sem `build:` para a app: puxa uma imagem já publicada, nunca constrói na
+#   VPS — sem isso não existe rollback determinístico.
+# - Zero portas publicadas, nem em 127.0.0.1, nem para a app nem para o
+#   Redis: Caddy alcança a app pelo nome do container, na rede interna deste
+#   cliente (net_powerbi); a app alcança o Redis do mesmo jeito.
+# - Todo segredo é `${VAR:?mensagem}` — `docker compose up` recusa subir com
+#   a variável ausente, em vez de silenciosamente substituir por string
+#   vazia.
+#
+# `<GITHUB_ORG>` é placeholder literal — troque antes do primeiro deploy real.
+
+# Nome fixo do projeto — sem isso, o nome do volume nomeado abaixo herdaria o
+# nome do diretório onde o compose rodar na VPS (imprevisível). Usa o nome do
+# produto real ("picos-analytics"), não o nome da pasta do repositório
+# ("PowerBi-Backend") nem o nome de infra do cliente ("powerbi") — ver nota
+# de nomenclatura em MIGRACAO.md.
+name: picos-analytics
+
+services:
+  app:
+    container_name: powerbi-app
+    image: "ghcr.io/<GITHUB_ORG>/picos-analytics:${IMAGE_TAG:?IMAGE_TAG é obrigatória — sempre o SHA do commit, nunca a tag latest (sem isso não existe rollback)}"
+    restart: unless-stopped
+    depends_on:
+      redis:
+        condition: service_healthy
+    environment:
+      APP_ENV: prod
+      PORT: 3000
+      DATABASE_URL: "${DATABASE_URL:?DATABASE_URL é obrigatória — aponte para postgres-central, usuário powerbi_app}"
+      REDIS_URL: redis://redis:6379
+      CACHE_TTL_SEGUNDOS: ${CACHE_TTL_SEGUNDOS:-3600}
+      ERP_API_BASE_URL: "${ERP_API_BASE_URL:?ERP_API_BASE_URL é obrigatória}"
+      ERP_API_TOKEN: "${ERP_API_TOKEN:?ERP_API_TOKEN é obrigatória — token da empresa na Meu ERP Online}"
+      BACKEND_API_KEY: "${BACKEND_API_KEY:?BACKEND_API_KEY é obrigatória, mínimo 32 caracteres — gerar com openssl rand -hex 32}"
+      CORS_ORIGIN: "${CORS_ORIGIN:?CORS_ORIGIN é obrigatória em produção — origem real do front-end, nunca um asterisco}"
+      SYNC_WINDOW_DIAS: ${SYNC_WINDOW_DIAS:-365}
+    networks:
+      - net_powerbi
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=64m
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.5'
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: '3'
+
+  redis:
+    image: redis:7-alpine
+    container_name: powerbi-redis
+    restart: unless-stopped
+    command: redis-server --save '' --appendonly no
+    networks:
+      - net_powerbi
+    read_only: true
+    tmpfs:
+      - /data
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+          cpus: '0.25'
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: '3'
+
+networks:
+  # Criada pelo repositório de infra, não por este compose — cada cliente
+  # tem a sua própria, sem rede compartilhada entre clientes diferentes.
+  net_powerbi:
+    external: true

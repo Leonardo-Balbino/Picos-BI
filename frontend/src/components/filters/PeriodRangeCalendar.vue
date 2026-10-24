@@ -25,8 +25,6 @@ function paraCalendarDate(valor: string) {
   return valor ? parseDate(valor) : undefined
 }
 
-// `RangeCalendarRoot` só emite uma data por vez (start depois end) — só propaga pra store
-// quando as duas pontas do intervalo já estiverem definidas.
 const modelValue = computed<DateRange>({
   get: () => ({ start: paraCalendarDate(props.inicio), end: paraCalendarDate(props.fim) }),
   set: (range) => {

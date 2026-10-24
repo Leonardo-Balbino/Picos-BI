@@ -45,6 +45,7 @@ const isTodasSelecionadas = computed(() => {
 })
 
 const labelFiltro = computed(() => {
+  if (lojasDisponiveis.value.length === 1) return lojasDisponiveis.value[0]!.nome
   if (isTodasSelecionadas.value) {
     if (!auth.isMatrizAdmin) {
       if (lojasDisponiveis.value.length === 1) {
@@ -62,21 +63,9 @@ const labelFiltro = computed(() => {
 })
 
 function toggleLoja(id: string) {
-  if (isTodasSelecionadas.value) {
-    // Se estava em "todas", e clicou em uma, desseleciona as outras para focar na selecionada
-    filters.setLojas([id])
-    return
-  }
-
-  const jaSelecionada = filters.lojasSelecionadas.includes(id)
-  if (jaSelecionada) {
-    // Evita deixar vazio (mínimo 1 selecionada)
-    if (filters.lojasSelecionadas.length > 1) {
-      filters.toggleLoja(id)
-    }
-  } else {
-    filters.toggleLoja(id)
-  }
+  const atuais = [...lojasSelecionadas.value]
+  const proximas = atuais.includes(id) ? atuais.filter((atual) => atual !== id) : [...atuais, id]
+  if (proximas.length) filters.setLojas(proximas)
 }
 
 function selecionarTodas() {
@@ -109,7 +98,7 @@ function selecionarTodas() {
         >
           <div class="mb-2 flex items-center justify-between border-b border-surface-border pb-2">
             <span class="text-xs font-bold uppercase tracking-wider text-ink-muted">
-              Filtrar Unidades (Multiloja)
+              Filtrar empresas e unidades
             </span>
             <button
               v-if="lojasDisponiveis.length > 1"
@@ -127,7 +116,7 @@ function selecionarTodas() {
             class="mb-2.5 rounded bg-brand-50 p-2 text-[11px] text-brand-800"
           >
             <i class="bi bi-shield-check mr-1" />
-            Perfil Franqueado: visualizando apenas sua(s) franquia(s) autorizada(s).
+            Acesso da empresa: apenas unidades autorizadas.
           </div>
 
           <!-- Opção Explícita de Consolidação (Total das Lojas) -->
@@ -140,7 +129,7 @@ function selecionarTodas() {
             <div class="flex items-center gap-2">
               <i class="bi bi-grid-fill text-brand-600" />
               <div>
-                <p class="leading-tight">{{ auth.isMatrizAdmin ? 'Consolidar Toda a Rede' : 'Total das minhas lojas' }}</p>
+                <p class="leading-tight">{{ auth.isMatrizAdmin ? 'Consolidar empresas selecionáveis' : 'Total das minhas lojas' }}</p>
                 <p class="text-[10px] text-ink-muted leading-none mt-0.5">
                   Todas as {{ lojasDisponiveis.length }} unidades incluídas
                 </p>
@@ -152,7 +141,7 @@ function selecionarTodas() {
           </div>
 
           <div class="space-y-1.5 max-h-56 overflow-y-auto pr-1">
-            <label
+            <div
               v-for="loja in lojasDisponiveis"
               :key="loja.id"
               class="flex cursor-pointer items-center justify-between rounded-btn p-2 text-xs transition-colors hover:bg-surface-bg"
@@ -163,6 +152,8 @@ function selecionarTodas() {
                   type="checkbox"
                   class="rounded border-surface-border text-brand-600 focus:ring-brand-500"
                   :checked="lojasSelecionadas.includes(loja.id)"
+                  :aria-label="loja.nome"
+                  :disabled="lojasSelecionadas.length === 1 && lojasSelecionadas.includes(loja.id)"
                   @change="toggleLoja(loja.id)"
                 />
                 <div>
@@ -176,11 +167,12 @@ function selecionarTodas() {
               >
                 <i class="bi bi-check-lg" />
               </span>
-            </label>
+              <button v-if="lojasDisponiveis.length > 1" type="button" class="ml-2 text-xs font-semibold text-brand-700" @click="filters.setLojas([loja.id])">Somente</button>
+            </div>
           </div>
 
           <div class="mt-3 border-t border-surface-border pt-2 text-[11px] text-ink-muted flex items-center justify-between">
-            <span>Dica: Selecione 2 ou mais para comparar</span>
+            <span>Selecione unidades ou use “Somente”</span>
             <span class="font-bold text-ink">{{ lojasSelecionadas.length }}/{{ lojasDisponiveis.length }}</span>
           </div>
         </PopoverContent>

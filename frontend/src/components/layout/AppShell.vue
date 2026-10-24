@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { watch } from 'vue'
+import { watch, onMounted, onUnmounted } from 'vue'
 import { RouterView } from 'vue-router'
 import AppSidebar from './AppSidebar.vue'
 import AppTopbar from './AppTopbar.vue'
@@ -9,13 +9,40 @@ import { useDimensoesStore } from '@/stores/useDimensoesStore'
 import { useFiltersStore } from '@/stores/useFiltersStore'
 import { useRecarregarDados } from '@/composables/useRecarregarDados'
 
-useEmpresaStore().carregar()
+import { useSyncStore } from '@/stores/useSyncStore'
+import { useVendasStore } from '@/stores/useVendasStore'
+
+// A identificação da empresa pertence à sessão atual, inclusive após trocar de usuário.
+const empresa = useEmpresaStore()
+empresa.$reset()
+empresa.carregar()
 useDimensoesStore().carregar()
 
 const filters = useFiltersStore()
-const { carregar } = useRecarregarDados()
+const { carregar, forcarAtualizacao } = useRecarregarDados()
 
-watch(() => [filters.periodo, filters.range.inicio, filters.range.fim], carregar, { immediate: true })
+watch(() => [filters.periodo, filters.range.inicio, filters.range.fim, filters.idCaixa, filters.lojasSelecionadas.join(',')], carregar, { immediate: true })
+
+const sync = useSyncStore()
+let timer: ReturnType<typeof setInterval> | undefined
+let atualizando = false
+async function verificarAtualizacao() {
+  if (atualizando || document.hidden) return
+  atualizando = true
+  try {
+    const mudou = await sync.consultar(filters.lojasSelecionadas.slice().sort().join(','))
+    if (mudou || useVendasStore().erro) await forcarAtualizacao()
+  } finally { atualizando = false }
+}
+watch(() => filters.lojasSelecionadas.join(','), () => { void sync.consultar(filters.lojasSelecionadas.slice().sort().join(',')) }, { immediate: true })
+onMounted(() => {
+  timer = setInterval(() => { void verificarAtualizacao() }, 60_000)
+  document.addEventListener('visibilitychange', verificarAtualizacao)
+})
+onUnmounted(() => {
+  if (timer) clearInterval(timer)
+  document.removeEventListener('visibilitychange', verificarAtualizacao)
+})
 </script>
 
 <template>

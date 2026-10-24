@@ -81,11 +81,7 @@ async function handleLogin() {
           <BrandLogo variant="color" :size="64" />
         </div>
         <h1 class="text-3xl font-bold text-white sm:text-4xl">PICOS Analytics</h1>
-        <p class="mt-3 max-w-sm text-lg font-medium text-brand-100">Inteligência de vendas para redes de franquias.</p>
-        <p class="mt-6 flex items-center gap-2 text-sm text-brand-100/80">
-          <i class="bi bi-shield-check text-green-400" />
-          Autenticação segura via tokens JWT de alta confiabilidade.
-        </p>
+        <p class="mt-3 max-w-sm text-lg font-medium text-brand-100">Inteligência de vendas para sua empresa.</p>
       </div>
       <div class="relative" />
     </div>
@@ -194,10 +190,6 @@ async function handleLogin() {
           </BaseButton>
         </form>
 
-        <div class="mt-6 rounded-btn border border-surface-border/80 bg-surface-bg p-3 text-center text-xs text-ink-muted">
-          <i class="bi bi-info-circle mr-1 text-brand-600" />
-          Acesso protegido por autenticação segura JWT.
-        </div>
       </div>
 
       <p class="mx-auto max-w-sm text-center text-xs text-ink-muted">

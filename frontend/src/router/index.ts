@@ -31,10 +31,14 @@ const router = createRouter({
         { path: 'visao-geral', name: 'visao-geral', component: () => import('@/pages/VisaoGeralPage.vue') },
         { path: 'vendas', name: 'vendas', component: () => import('@/pages/VendasPage.vue') },
         { path: 'mais-vendidos', name: 'mais-vendidos', component: () => import('@/pages/MaisVendidosPage.vue') },
+        { path: 'vendedores', name: 'vendedores', component: () => import('@/pages/VendedoresPage.vue') },
+        { path: 'estoque', name: 'estoque', component: () => import('@/pages/EstoqueUrgenciaPage.vue') },
+        { path: 'contas-a-pagar', name: 'contas-a-pagar', component: () => import('@/pages/ContasPagarPage.vue') },
+        { path: 'contas-a-receber', name: 'contas-a-receber', component: () => import('@/pages/ContasReceberPage.vue') },
+        { path: 'dre', name: 'dre', component: () => import('@/pages/DrePage.vue') },
+        { path: 'pagamentos', name: 'pagamentos', component: () => import('@/pages/PagamentosPage.vue') },
         { path: 'produtos', name: 'produtos', component: () => import('@/pages/ProdutosPage.vue') },
         { path: 'clientes', name: 'clientes', component: () => import('@/pages/ClientesPage.vue') },
-        { path: 'vendedores', name: 'vendedores', component: () => import('@/pages/VendedoresPage.vue') },
-        { path: 'pagamentos', name: 'pagamentos', component: () => import('@/pages/PagamentosPage.vue') },
         { path: 'configuracoes', name: 'configuracoes', component: () => import('@/pages/ConfiguracoesPage.vue') },
         // { path: 'apps', name: 'apps', component: () => import('@/pages/AppsPage.vue') },
       ],
@@ -51,6 +55,7 @@ router.beforeEach((to) => {
   if (to.path === '/login' && auth.autenticado) {
     return { path: '/visao-geral' }
   }
+
   return true
 })
 

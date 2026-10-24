@@ -16,7 +16,7 @@ const props = withDefaults(
     stacked?: boolean
     valueFormatter?: (v: number) => string
   }>(),
-  { height: 260, stacked: false, showDataLabels: false },
+  { height: 260, stacked: false, showDataLabels: true },
 )
 
 const distributed = computed(() => props.highlightIndex !== undefined && props.series.length === 1)
@@ -25,7 +25,7 @@ const options = computed<ApexOptions>(() => {
   const overrides: ApexOptions = {
     chart: { type: 'bar', height: props.height, stacked: props.stacked },
     plotOptions: {
-      bar: { columnWidth: props.stacked ? '45%' : '55%', borderRadius: props.stacked ? 2 : 4, distributed: distributed.value },
+      bar: { columnWidth: props.stacked ? '45%' : '55%', borderRadius: props.stacked ? 2 : 4, distributed: distributed.value, dataLabels: { position: 'top' } },
     },
     dataLabels: {
       enabled: props.showDataLabels,
@@ -38,12 +38,16 @@ const options = computed<ApexOptions>(() => {
         fontSize: '11px',
         fontWeight: 600,
         fontFamily: 'Montserrat, sans-serif',
+        colors: ['#000000'],
       },
-      offsetY: -6,
+      offsetY: -18,
+      background: { enabled: false },
+      dropShadow: { enabled: false },
     },
+    grid: { padding: { top: 25, right: 18, left: 8 } },
     legend: { show: !distributed.value },
     xaxis: { categories: props.categories },
-    yaxis: { labels: { formatter: props.valueFormatter } },
+    yaxis: { min: Math.min(0, ...props.series.flatMap((serie) => serie.data)), max: (max: number) => Math.max(1, max * 1.2), labels: { formatter: props.valueFormatter } },
     tooltip: { y: { formatter: props.valueFormatter } },
   }
   if (distributed.value) {
@@ -56,5 +60,5 @@ const options = computed<ApexOptions>(() => {
 </script>
 
 <template>
-  <VueApexCharts type="bar" :options="options" :series="series" :height="height" />
+  <div class="overflow-x-auto"><div :style="{ minWidth: categories.length > 5 ? categories.length * 76 + 'px' : '0' }"><VueApexCharts type="bar" :options="options" :series="series" :height="height" /></div></div>
 </template>

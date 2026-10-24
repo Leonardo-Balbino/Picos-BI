@@ -70,7 +70,7 @@ async function handleSalvarLoja() {
       uf: novaLoja.value.uf || undefined,
       erpToken: novaLoja.value.erpToken || undefined,
     })
-    ui.toast({ title: 'Sucesso', description: 'Nova unidade cadastrada na rede com sucesso!', variant: 'success' })
+    ui.toast({ title: 'Sucesso', description: 'Nova unidade cadastrada com sucesso!', variant: 'success' })
     abrindoNovaLoja.value = false
     novaLoja.value = { nome: '', codigo: '', cnpj: '', cidade: '', uf: '', erpToken: '' }
   } catch (e) {
@@ -93,11 +93,11 @@ async function handleSalvarFranqueado() {
       senha: novoFranqueado.value.senha,
       lojaIds: novoFranqueado.value.lojaIds,
     })
-    ui.toast({ title: 'Sucesso', description: 'Franqueado cadastrado com sucesso!', variant: 'success' })
+    ui.toast({ title: 'Sucesso', description: 'Usuário da empresa cadastrado com sucesso!', variant: 'success' })
     abrindoNovoFranqueado.value = false
     novoFranqueado.value = { nome: '', email: '', senha: '', lojaIds: [] }
   } catch (e) {
-    ui.toast({ title: 'Erro ao cadastrar franqueado', description: e instanceof Error ? e.message : 'Falha na requisição.', variant: 'error' })
+    ui.toast({ title: 'Erro ao cadastrar usuário', description: e instanceof Error ? e.message : 'Falha na requisição.', variant: 'error' })
   } finally {
     salvandoFranqueado.value = false
   }
@@ -134,7 +134,7 @@ async function handleSalvarVinculo() {
 
 <template>
   <div class="space-y-6">
-    <PageHeader title="Configurações" subtitle="Dados de perfil, governança de acesso e unidades da rede." />
+    <PageHeader title="Configurações" subtitle="Dados de perfil, empresas independentes e permissões de acesso." />
 
     <!-- Card de Perfil -->
     <div class="rounded-card bg-surface p-5 shadow-sm border border-surface-border">
@@ -150,10 +150,10 @@ async function handleSalvarVinculo() {
             <div class="mt-2 flex flex-wrap items-center gap-2">
               <StatusBadge :variant="auth.isMatrizAdmin ? 'success' : 'neutral'">
                 <i :class="auth.isMatrizAdmin ? 'bi bi-shield-lock-fill' : 'bi bi-shop'" class="mr-1" />
-                {{ auth.isMatrizAdmin ? 'Matriz / Administrador Global' : 'Franqueado (Acesso Restrito RLS)' }}
+                {{ auth.isMatrizAdmin ? 'Administrador do BI' : 'Acesso da empresa' }}
               </StatusBadge>
               <span class="text-xs text-ink-muted">
-                {{ auth.isMatrizAdmin ? 'Acesso irrestrito a todas as lojas' : `${auth.lojasAutorizadas.length} loja(s) autorizada(s)` }}
+                {{ auth.isMatrizAdmin ? 'Gestão das empresas cadastradas no BI' : `${auth.lojasAutorizadas.length} loja(s) autorizada(s)` }}
               </span>
             </div>
           </div>
@@ -166,8 +166,8 @@ async function handleSalvarVinculo() {
     <div v-if="auth.isMatrizAdmin" class="rounded-card bg-surface p-5 shadow-sm border border-surface-border">
       <div class="mb-4 flex flex-wrap items-center justify-between gap-3 border-b border-surface-border pb-3">
         <div>
-          <h3 class="text-sm font-semibold text-ink">Rede de Franquias & Unidades (Multiloja)</h3>
-          <p class="text-xs text-ink-muted">Lojas cadastradas para consolidação de faturamento e governança RLS.</p>
+          <h3 class="text-sm font-semibold text-ink">Empresas e unidades cadastradas</h3>
+          <p class="text-xs text-ink-muted">Cada empresa possui dados e acessos próprios.</p>
         </div>
         <BaseButton
           variant="primary"
@@ -282,24 +282,24 @@ async function handleSalvarVinculo() {
     <div v-if="auth.isMatrizAdmin" class="rounded-card bg-surface p-5 shadow-sm border border-surface-border">
       <div class="mb-4 flex flex-wrap items-center justify-between gap-3 border-b border-surface-border pb-3">
         <div>
-          <h3 class="text-sm font-semibold text-ink">Governança de Acessos & Franqueados (RLS)</h3>
-          <p class="text-xs text-ink-muted">Controle quais lojas cada franqueado pode visualizar nos dashboards.</p>
+          <h3 class="text-sm font-semibold text-ink">Usuários e permissões de acesso</h3>
+          <p class="text-xs text-ink-muted">Controle quais unidades cada usuário pode visualizar nos dashboards.</p>
         </div>
         <BaseButton
           variant="primary"
           class="text-xs"
           @click="abrindoNovoFranqueado = !abrindoNovoFranqueado"
         >
-          <i class="bi bi-person-plus mr-1" /> {{ abrindoNovoFranqueado ? 'Fechar Formulário' : 'Novo Franqueado' }}
+          <i class="bi bi-person-plus mr-1" /> {{ abrindoNovoFranqueado ? 'Fechar Formulário' : 'Novo Usuário' }}
         </BaseButton>
       </div>
 
-      <!-- Formulário Novo Franqueado -->
+      <!-- Formulário Novo Usuário -->
       <div v-if="abrindoNovoFranqueado" class="mb-5 rounded-card border border-brand-200 bg-brand-50/40 p-4">
-        <h4 class="mb-3 text-xs font-bold uppercase tracking-wider text-brand-900">Cadastrar Novo Franqueado</h4>
+        <h4 class="mb-3 text-xs font-bold uppercase tracking-wider text-brand-900">Cadastrar Novo Usuário</h4>
         <div class="grid grid-cols-1 gap-3 sm:grid-cols-3">
           <div>
-            <label class="text-xs font-medium text-ink-muted">Nome do Franqueado</label>
+            <label class="text-xs font-medium text-ink-muted">Nome do Usuário</label>
             <input
               v-model="novoFranqueado.nome"
               type="text"
@@ -312,7 +312,7 @@ async function handleSalvarVinculo() {
             <input
               v-model="novoFranqueado.email"
               type="email"
-              placeholder="franqueado@acaisenses.com"
+              placeholder="usuario@empresa.com"
               class="mt-1 w-full rounded-btn border border-surface-border bg-surface px-3 py-1.5 text-xs text-ink focus:border-brand-500 focus:outline-none"
             />
           </div>
@@ -349,7 +349,7 @@ async function handleSalvarVinculo() {
         <div class="mt-4 flex justify-end gap-2">
           <BaseButton variant="secondary" class="text-xs" @click="abrindoNovoFranqueado = false">Cancelar</BaseButton>
           <BaseButton variant="primary" class="text-xs" :loading="salvandoFranqueado" @click="handleSalvarFranqueado">
-            Cadastrar Franqueado
+            Cadastrar Usuário
           </BaseButton>
         </div>
       </div>
@@ -359,7 +359,7 @@ async function handleSalvarVinculo() {
         <table class="w-full text-left text-xs">
           <thead class="border-b border-surface-border bg-surface-bg text-ink-muted font-semibold">
             <tr>
-              <th class="p-2.5">Nome do Franqueado</th>
+              <th class="p-2.5">Nome do Usuário</th>
               <th class="p-2.5">E-mail</th>
               <th class="p-2.5">Lojas Autorizadas</th>
               <th class="p-2.5 text-right">Ações</th>
@@ -410,7 +410,7 @@ async function handleSalvarVinculo() {
             Vincular Lojas para {{ franqueadoEmEdicao.nome }}
           </h4>
           <p class="text-xs text-ink-muted mb-4">
-            Selecione as unidades que este franqueado terá permissão para visualizar.
+            Selecione as unidades que este usuário terá permissão para visualizar.
           </p>
 
           <div class="space-y-2 max-h-60 overflow-y-auto pr-1">
@@ -444,8 +444,8 @@ async function handleSalvarVinculo() {
     </div>
 
     <!-- Informações da Organização -->
-    <div class="rounded-card bg-surface p-5 shadow-sm border border-surface-border">
-      <p class="mb-4 border-b border-surface-border pb-3 text-sm font-semibold text-ink">Organização Matriz</p>
+    <div v-if="!auth.isMatrizAdmin" class="rounded-card bg-surface p-5 shadow-sm border border-surface-border">
+      <p class="mb-4 border-b border-surface-border pb-3 text-sm font-semibold text-ink">Dados da empresa</p>
       <div v-if="empresa.carregando" class="grid grid-cols-1 gap-4 md:grid-cols-2">
         <SkeletonCard variant="list" :rows="2" />
         <SkeletonCard variant="list" :rows="2" />
@@ -454,19 +454,19 @@ async function handleSalvarVinculo() {
       <div v-else class="grid grid-cols-1 gap-4 md:grid-cols-2">
         <div>
           <span class="text-xs font-medium text-ink-muted">Nome Fantasia</span>
-          <p class="text-sm text-ink font-semibold">{{ empresa.dados?.fantasia || 'Rede Açaí Senses' }}</p>
+          <p class="text-sm text-ink font-semibold">{{ empresa.dados?.fantasia || '—' }}</p>
         </div>
         <div>
           <span class="text-xs font-medium text-ink-muted">Razão Social</span>
-          <p class="text-sm text-ink font-semibold">{{ empresa.dados?.razaoSocial || 'Rede Açaí Senses' }}</p>
+          <p class="text-sm text-ink font-semibold">{{ empresa.dados?.razaoSocial || '—' }}</p>
         </div>
         <div>
           <span class="text-xs font-medium text-ink-muted">CNPJ/CPF</span>
-          <p class="tabular-nums text-sm text-ink font-mono">{{ empresa.dados?.cnpjCpf || '51572389000180' }}</p>
+          <p class="tabular-nums text-sm text-ink font-mono">{{ empresa.dados?.cnpjCpf || '—' }}</p>
         </div>
         <div>
           <span class="text-xs font-medium text-ink-muted">Cidade/UF</span>
-          <p class="text-sm text-ink">{{ [empresa.dados?.municipio, empresa.dados?.uf].filter(Boolean).join('/') || 'Inhuma/PI' }}</p>
+          <p class="text-sm text-ink">{{ [empresa.dados?.municipio, empresa.dados?.uf].filter(Boolean).join('/') || '—' }}</p>
         </div>
       </div>
     </div>
