@@ -16,6 +16,7 @@ const filters = useFiltersStore()
 const dre = ref<DreResultado | null>(null)
 const carregando = ref(false)
 const erro = ref('')
+const despesasExpandidas = ref(true)
 
 // Seletor de Competência
 type TipoCompetencia = 'mensal' | 'trimestral' | 'anual'
@@ -134,11 +135,13 @@ onMounted(() => {
 })
 
 const kpis = computed(() => dre.value?.kpis)
+const despesasDetalhadas = computed(() => dre.value?.despesasDetalhadas ?? [])
 
-// Gráfico comparativo de componentes principais
-const categoriasGrafico = ['Receita Líquida', 'Custos (CMV)', 'Lucro Bruto', 'Despesas Oper.', 'Resultado Líquido']
+// Gráfico comparativo da estrutura simplificada em 4 partes
+const categoriasGrafico = ['1. Receita', '2. Custos', '3. Despesas', '4. Resultado Líquido']
 const seriesGrafico = computed(() => {
   if (!dre.value) return []
+  const k = dre.value.kpis
   const l = dre.value.linhas
   const getVal = (cod: string, tipo: 'atual' | 'ant') => {
     const linha = l.find((x) => x.codigo === cod)
@@ -150,20 +153,18 @@ const seriesGrafico = computed(() => {
     {
       name: 'Período Atual',
       data: [
+        k.receitaLiquida,
         getVal('2', 'atual'),
-        getVal('2.1', 'atual'),
-        getVal('3', 'atual'),
-        getVal('3.1', 'atual'),
-        dre.value.kpis.resultadoLiquido,
+        k.despesasOperacionais,
+        k.resultadoLiquido,
       ],
     },
     {
       name: modoComparativo.value === 'yoy' ? 'Ano Anterior (YoY)' : 'Período Anterior',
       data: [
+        getVal('1', 'ant'),
         getVal('2', 'ant'),
-        getVal('2.1', 'ant'),
         getVal('3', 'ant'),
-        getVal('3.1', 'ant'),
         l.find((x) => x.codigo === '4')?.valorAnterior ?? 0,
       ],
     },
@@ -190,9 +191,9 @@ function dispararExportacaoCsv() {
   const linhas = dre.value.linhas.map((l) => ({
     conta: l.descricao,
     valorAtual: formatCurrency(l.valorAtual),
-    avAtual: l.tipo === 'RECEITA' || l.tipo === 'SUBTOTAL' || l.tipo === 'RESULTADO' ? `${l.percentualVerticalAtual}%` : `-${l.percentualVerticalAtual}%`,
+    avAtual: l.percentualVerticalAtual ? `${l.percentualVerticalAtual}%` : '—',
     valorAnt: formatCurrency(l.valorAnterior),
-    avAnt: `${l.percentualVerticalAnterior}%`,
+    avAnt: l.percentualVerticalAnterior ? `${l.percentualVerticalAnterior}%` : '—',
     varNom: formatCurrency(l.variacaoNominal),
     varPerc: `${l.variacaoPercentual}%`,
   }))
@@ -208,32 +209,38 @@ const mesesNomes = [
 
 <template>
   <div class="space-y-6">
-    <PageHeader title="DRE — Demonstrativo do Resultado do Exercício" />
+    <PageHeader
+      title="DRE — Demonstrativo do Resultado do Exercício"
+      subtitle="Estrutura consolidada de apuração de resultados (Receita, Custos, Despesas e Resultado Líquido)."
+    />
 
     <!-- Barra de Filtros e Seletores de Competência -->
-    <div class="flex flex-wrap items-center justify-between gap-3">
-      <div class="flex flex-wrap items-center gap-2">
+    <div class="flex flex-wrap items-center justify-between gap-3 rounded-card bg-surface p-4 shadow-sm">
+      <div class="flex flex-wrap items-center gap-2.5">
         <StoreFilter />
 
         <!-- Seletor de Tipo de Competência -->
-        <div class="inline-flex rounded-btn border border-surface-border bg-surface p-1 shadow-xs">
+        <div class="inline-flex rounded-btn border border-surface-border bg-surface-bg p-1 shadow-xs">
           <button
-            class="rounded px-3 py-1 text-xs font-semibold transition-colors"
-            :class="tipoCompetencia === 'mensal' ? 'bg-brand-900 text-white' : 'text-ink-muted hover:text-ink'"
+            type="button"
+            class="rounded px-3 py-1 text-xs font-semibold transition-colors cursor-pointer"
+            :class="tipoCompetencia === 'mensal' ? 'bg-brand-900 text-white shadow-xs' : 'text-ink-muted hover:text-ink'"
             @click="tipoCompetencia = 'mensal'"
           >
             Mensal
           </button>
           <button
-            class="rounded px-3 py-1 text-xs font-semibold transition-colors"
-            :class="tipoCompetencia === 'trimestral' ? 'bg-brand-900 text-white' : 'text-ink-muted hover:text-ink'"
+            type="button"
+            class="rounded px-3 py-1 text-xs font-semibold transition-colors cursor-pointer"
+            :class="tipoCompetencia === 'trimestral' ? 'bg-brand-900 text-white shadow-xs' : 'text-ink-muted hover:text-ink'"
             @click="tipoCompetencia = 'trimestral'"
           >
             Trimestral
           </button>
           <button
-            class="rounded px-3 py-1 text-xs font-semibold transition-colors"
-            :class="tipoCompetencia === 'anual' ? 'bg-brand-900 text-white' : 'text-ink-muted hover:text-ink'"
+            type="button"
+            class="rounded px-3 py-1 text-xs font-semibold transition-colors cursor-pointer"
+            :class="tipoCompetencia === 'anual' ? 'bg-brand-900 text-white shadow-xs' : 'text-ink-muted hover:text-ink'"
             @click="tipoCompetencia = 'anual'"
           >
             Anual
@@ -274,17 +281,19 @@ const mesesNomes = [
         </select>
 
         <!-- Modo Comparativo -->
-        <div class="inline-flex rounded-btn border border-surface-border bg-surface p-1 shadow-xs">
+        <div class="inline-flex rounded-btn border border-surface-border bg-surface-bg p-1 shadow-xs">
           <button
-            class="rounded px-2.5 py-1 text-xs font-semibold transition-colors"
-            :class="modoComparativo === 'anterior' ? 'bg-brand-900 text-white' : 'text-ink-muted hover:text-ink'"
+            type="button"
+            class="rounded px-2.5 py-1 text-xs font-semibold transition-colors cursor-pointer"
+            :class="modoComparativo === 'anterior' ? 'bg-brand-900 text-white shadow-xs' : 'text-ink-muted hover:text-ink'"
             @click="modoComparativo = 'anterior'"
           >
-            Mês/Período Anterior
+            Mês Anterior
           </button>
           <button
-            class="rounded px-2.5 py-1 text-xs font-semibold transition-colors"
-            :class="modoComparativo === 'yoy' ? 'bg-brand-900 text-white' : 'text-ink-muted hover:text-ink'"
+            type="button"
+            class="rounded px-2.5 py-1 text-xs font-semibold transition-colors cursor-pointer"
+            :class="modoComparativo === 'yoy' ? 'bg-brand-900 text-white shadow-xs' : 'text-ink-muted hover:text-ink'"
             @click="modoComparativo = 'yoy'"
           >
             Ano Anterior (YoY)
@@ -312,40 +321,40 @@ const mesesNomes = [
       </div>
     </div>
 
-    <!-- 4 KPIs Executivos do DRE -->
+    <!-- 4 KPIs Estruturais Diretos da DRE -->
     <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
       <KpiCard
-        label="Receita Líquida"
+        label="1. Receita"
         :value="kpis ? formatCurrency(kpis.receitaLiquida) : '—'"
         icon="bi-cash-coin"
-        :highlight="true"
-        suffix="Vendas brutas menos cancelamentos"
+        tone="brand"
+        suffix="Receita líquida faturada no período"
       />
       <KpiCard
-        label="Lucro Bruto"
-        :value="kpis ? formatCurrency(kpis.lucroBruto) : '—'"
-        icon="bi-pie-chart-fill"
-        :badge="kpis ? `Margem: ${formatPercent(kpis.margemBruta, true)}` : undefined"
-        badge-variant="green"
-        suffix="Margem de contribuição (Receita - CMV)"
+        label="2. (-) Custos"
+        :value="kpis ? formatCurrency(dre?.linhas.find(l => l.codigo === '2')?.valorAtual ?? (kpis.receitaLiquida - kpis.lucroBruto)) : '—'"
+        icon="bi-box-seam"
+        suffix="Custos dos Produtos Vendidos (CMV)"
       />
       <KpiCard
-        label="Despesas Operacionais"
+        label="3. (-) Despesas"
         :value="kpis ? formatCurrency(kpis.despesasOperacionais) : '—'"
-        icon="bi-calculator-fill"
-        suffix="Baseado em contas a pagar do período"
+        icon="bi-receipt-cutoff"
+        :badge="despesasDetalhadas.length ? `${despesasDetalhadas.length} contas mapeadas` : undefined"
+        badge-variant="amber"
+        suffix="Despesas e contas liquidadas (Plano de Contas)"
       />
       <KpiCard
-        label="Resultado Líquido"
+        label="4. (=) Resultado Líquido"
         :value="kpis ? formatCurrency(kpis.resultadoLiquido) : '—'"
         icon="bi-trophy-fill"
-        :badge="kpis ? `Margem Líq: ${formatPercent(kpis.margemLiquida, true)}` : undefined"
+        :badge="kpis ? `Margem Líquida: ${formatPercent(kpis.margemLiquida, true)}` : undefined"
         :badge-variant="kpis && kpis.resultadoLiquido >= 0 ? 'green' : 'amber'"
         suffix="Lucro ou prejuízo líquido consolidado"
       />
     </div>
 
-    <!-- Gráfico Comparativo de Estrutura de Resultados -->
+    <!-- Gráfico Comparativo da Estrutura Enxuta -->
     <div class="rounded-card border border-surface-border bg-surface p-5 shadow-sm">
       <div class="mb-4">
         <h2 class="text-base font-bold text-ink">Comparativo de Resultados</h2>
@@ -374,19 +383,29 @@ const mesesNomes = [
       </div>
     </div>
 
-    <!-- Tabela Analítica de DRE Contábil -->
+    <!-- Tabela Estrutural Simplificada da DRE (Receita, Custos, Despesas e Resultado Líquido) -->
     <div class="rounded-card border border-surface-border bg-surface p-5 shadow-sm">
-      <div class="mb-4 flex flex-wrap items-center justify-between gap-2">
+      <div class="mb-4 flex flex-wrap items-center justify-between gap-3 border-b border-surface-border/50 pb-3">
         <div>
-          <h2 class="text-base font-bold text-ink">Estrutura do DRE Consolidado</h2>
+          <h2 class="text-base font-bold text-ink">Demonstrativo do Resultado do Exercício (DRE)</h2>
           <p class="text-xs text-ink-muted">
-            Análise Vertical (AV % sobre Receita Líquida) e Análise Horizontal (AH Variação % e Nominal)
+            Estrutura direta: 1. Receita | 2. (-) Custos | 3. (-) Despesas com Plano de Contas | 4. (=) Resultado Líquido
           </p>
         </div>
+
+        <button
+          v-if="despesasDetalhadas.length > 0"
+          type="button"
+          class="inline-flex items-center gap-1.5 rounded-btn border border-surface-border bg-surface-bg px-3 py-1.5 text-xs font-semibold text-ink shadow-xs transition-colors hover:border-brand-400 cursor-pointer"
+          @click="despesasExpandidas = !despesasExpandidas"
+        >
+          <i :class="despesasExpandidas ? 'bi bi-chevron-up' : 'bi bi-chevron-down'" />
+          <span>{{ despesasExpandidas ? 'Recolher Plano de Contas' : `Expandir Plano de Contas (${despesasDetalhadas.length} contas)` }}</span>
+        </button>
       </div>
 
       <div v-if="carregando && !dre" class="space-y-2">
-        <SkeletonCard v-for="i in 7" :key="i" variant="table-row" />
+        <SkeletonCard v-for="i in 6" :key="i" variant="table-row" />
       </div>
 
       <EmptyState
@@ -404,7 +423,7 @@ const mesesNomes = [
         <table class="w-full text-left text-sm">
           <thead>
             <tr class="border-b border-surface-border text-xs uppercase tracking-wider text-ink-muted">
-              <th class="py-3 pl-4 pr-3 font-semibold">Conta / Descrição</th>
+              <th class="py-3 pl-4 pr-3 font-semibold">Estrutura / Plano de Contas</th>
               <th class="py-3 px-3 text-right font-semibold">Período Atual</th>
               <th class="py-3 px-3 text-right font-semibold">AV %</th>
               <th class="py-3 px-3 text-right font-semibold">Período Anterior</th>
@@ -414,55 +433,170 @@ const mesesNomes = [
             </tr>
           </thead>
           <tbody class="divide-y divide-surface-border/50">
-            <tr
-              v-for="l in dre?.linhas ?? []"
-              :key="l.codigo"
-              class="transition-colors hover:bg-surface-bg/50"
-              :class="{
-                'bg-brand-50/40 font-bold text-brand-900': l.tipo === 'SUBTOTAL',
-                'bg-brand-100/60 font-bold text-ink text-base': l.tipo === 'RESULTADO',
-                'font-medium text-ink': l.tipo === 'RECEITA',
-                'text-ink-muted': l.tipo === 'DEDUCAO' || l.tipo === 'CUSTO' || l.tipo === 'DESPESA',
-              }"
-            >
+            <!-- 1. RECEITA -->
+            <tr class="bg-emerald-50/40 font-bold text-emerald-950 transition-colors">
+              <td class="py-3.5 pl-4 pr-3">
+                <div class="flex items-center gap-2">
+                  <span class="flex h-5 w-5 items-center justify-center rounded-full bg-emerald-600 text-[10px] text-white">1</span>
+                  <span class="text-sm font-bold">Receita</span>
+                </div>
+              </td>
+              <td class="py-3.5 px-3 text-right font-bold text-emerald-800">
+                {{ formatCurrency(dre?.kpis.receitaLiquida ?? 0) }}
+              </td>
+              <td class="py-3.5 px-3 text-right text-xs font-semibold text-emerald-800">100,00%</td>
+              <td class="py-3.5 px-3 text-right font-semibold text-ink-muted">
+                {{ formatCurrency(dre?.linhas.find(l => l.codigo === '1')?.valorAnterior ?? 0) }}
+              </td>
+              <td class="py-3.5 px-3 text-right text-xs text-ink-muted">100,00%</td>
+              <td class="py-3.5 px-3 text-right text-xs font-semibold"
+                :class="(dre?.linhas.find(l => l.codigo === '1')?.variacaoNominal ?? 0) >= 0 ? 'text-emerald-700' : 'text-danger-700'">
+                {{ (dre?.linhas.find(l => l.codigo === '1')?.variacaoNominal ?? 0) > 0 ? '+' : '' }}{{ formatCurrency(dre?.linhas.find(l => l.codigo === '1')?.variacaoNominal ?? 0) }}
+              </td>
+              <td class="py-3.5 pl-3 pr-4 text-right">
+                <span class="inline-block rounded px-2 py-0.5 text-xs font-semibold bg-emerald-100 text-emerald-800">
+                  {{ rotuloVariacao(dre?.linhas.find(l => l.codigo === '1')?.variacaoPercentual ?? 0) }}
+                </span>
+              </td>
+            </tr>
+
+            <!-- 2. (-) CUSTOS -->
+            <tr class="transition-colors hover:bg-surface-bg/50 font-medium">
               <td class="py-3 pl-4 pr-3">
-                <span :class="l.codigo.includes('.') ? 'pl-4' : ''">{{ l.descricao }}</span>
+                <div class="flex items-center gap-2">
+                  <span class="flex h-5 w-5 items-center justify-center rounded-full bg-slate-500 text-[10px] text-white">2</span>
+                  <span class="text-sm font-semibold text-ink">(-) Custos (CMV)</span>
+                </div>
               </td>
-              <td
-                class="py-3 px-3 text-right"
-                :class="l.valorAtual < 0 ? 'text-danger-700' : ''"
-              >
-                {{ formatCurrency(l.valorAtual) }}
-              </td>
-              <td class="py-3 px-3 text-right text-xs">
-                {{ l.percentualVerticalAtual ? `${l.percentualVerticalAtual}%` : '—' }}
-              </td>
-              <td
-                class="py-3 px-3 text-right"
-                :class="l.valorAnterior < 0 ? 'text-danger-700' : ''"
-              >
-                {{ formatCurrency(l.valorAnterior) }}
+              <td class="py-3 px-3 text-right text-danger-700 font-semibold">
+                {{ formatCurrency(dre?.linhas.find(l => l.codigo === '2')?.valorAtual ?? 0) }}
               </td>
               <td class="py-3 px-3 text-right text-xs text-ink-muted">
-                {{ l.percentualVerticalAnterior ? `${l.percentualVerticalAnterior}%` : '—' }}
+                {{ dre?.linhas.find(l => l.codigo === '2')?.percentualVerticalAtual ? `${dre.linhas.find(l => l.codigo === '2')?.percentualVerticalAtual}%` : '—' }}
               </td>
-              <td
-                class="py-3 px-3 text-right text-xs"
-                :class="l.variacaoNominal > 0 ? 'text-green-700 font-semibold' : l.variacaoNominal < 0 ? 'text-danger-700 font-semibold' : 'text-ink-muted'"
-              >
-                {{ l.variacaoNominal > 0 ? '+' : '' }}{{ formatCurrency(l.variacaoNominal) }}
+              <td class="py-3 px-3 text-right text-ink-muted">
+                {{ formatCurrency(dre?.linhas.find(l => l.codigo === '2')?.valorAnterior ?? 0) }}
+              </td>
+              <td class="py-3 px-3 text-right text-xs text-ink-muted">
+                {{ dre?.linhas.find(l => l.codigo === '2')?.percentualVerticalAnterior ? `${dre.linhas.find(l => l.codigo === '2')?.percentualVerticalAnterior}%` : '—' }}
+              </td>
+              <td class="py-3 px-3 text-right text-xs font-semibold text-ink-muted">
+                {{ formatCurrency(dre?.linhas.find(l => l.codigo === '2')?.variacaoNominal ?? 0) }}
               </td>
               <td class="py-3 pl-3 pr-4 text-right">
+                <span class="inline-block rounded px-2 py-0.5 text-xs font-semibold bg-surface-bg text-ink-muted">
+                  {{ rotuloVariacao(dre?.linhas.find(l => l.codigo === '2')?.variacaoPercentual ?? 0) }}
+                </span>
+              </td>
+            </tr>
+
+            <!-- 3. (-) DESPESAS (Totalizador) -->
+            <tr class="bg-amber-50/40 font-bold transition-colors">
+              <td class="py-3 pl-4 pr-3">
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-2">
+                    <span class="flex h-5 w-5 items-center justify-center rounded-full bg-amber-600 text-[10px] text-white">3</span>
+                    <span class="text-sm font-bold text-amber-950">(-) Despesas Operacionais</span>
+                  </div>
+                  <span v-if="despesasDetalhadas.length" class="text-[11px] font-semibold text-amber-800 bg-amber-100 px-2 py-0.5 rounded-full">
+                    {{ despesasDetalhadas.length }} contas mapeadas
+                  </span>
+                </div>
+              </td>
+              <td class="py-3 px-3 text-right text-danger-700 font-bold">
+                {{ formatCurrency(-(dre?.kpis.despesasOperacionais ?? 0)) }}
+              </td>
+              <td class="py-3 px-3 text-right text-xs font-semibold text-amber-900">
+                {{ dre?.kpis.receitaLiquida ? `${((dre.kpis.despesasOperacionais / dre.kpis.receitaLiquida) * 100).toFixed(2)}%` : '—' }}
+              </td>
+              <td class="py-3 px-3 text-right font-semibold text-ink-muted">
+                {{ formatCurrency(dre?.linhas.find(l => l.codigo === '3')?.valorAnterior ?? 0) }}
+              </td>
+              <td class="py-3 px-3 text-right text-xs text-ink-muted">
+                {{ dre?.linhas.find(l => l.codigo === '3')?.percentualVerticalAnterior ? `${dre.linhas.find(l => l.codigo === '3')?.percentualVerticalAnterior}%` : '—' }}
+              </td>
+              <td class="py-3 px-3 text-right text-xs font-semibold text-ink-muted">
+                {{ formatCurrency(dre?.linhas.find(l => l.codigo === '3')?.variacaoNominal ?? 0) }}
+              </td>
+              <td class="py-3 pl-3 pr-4 text-right">
+                <span class="inline-block rounded px-2 py-0.5 text-xs font-semibold bg-surface-bg text-ink-muted">
+                  {{ rotuloVariacao(dre?.linhas.find(l => l.codigo === '3')?.variacaoPercentual ?? 0) }}
+                </span>
+              </td>
+            </tr>
+
+            <!-- 3.x PLANO DE CONTAS (Linhas detalhadas de Despesas Baixadas/Liquidadas) -->
+            <template v-if="despesasExpandidas && despesasDetalhadas.length > 0">
+              <tr
+                v-for="d in despesasDetalhadas"
+                :key="d.descricao"
+                class="bg-surface transition-colors hover:bg-amber-50/20 text-xs"
+              >
+                <td class="py-2.5 pl-10 pr-3">
+                  <div class="flex items-center gap-2">
+                    <span class="rounded bg-surface-bg px-1.5 py-0.5 text-[10px] font-mono text-ink-muted border border-surface-border">
+                      Plano
+                    </span>
+                    <span class="font-medium text-ink">{{ d.descricao }}</span>
+                  </div>
+                </td>
+                <td class="py-2.5 px-3 text-right text-danger-600 font-semibold">
+                  {{ formatCurrency(-d.valorAtual) }}
+                </td>
+                <td class="py-2.5 px-3 text-right text-ink-muted">
+                  {{ d.percentual ? `${d.percentual}% das despesas` : '—' }}
+                </td>
+                <td class="py-2.5 px-3 text-right text-ink-muted">
+                  {{ formatCurrency(-d.valorAnterior) }}
+                </td>
+                <td class="py-2.5 px-3 text-right text-ink-muted">—</td>
+                <td class="py-2.5 px-3 text-right text-ink-muted">
+                  {{ formatCurrency(d.valorAtual - d.valorAnterior) }}
+                </td>
+                <td class="py-2.5 pl-3 pr-4 text-right text-ink-muted">
+                  {{ d.valorAnterior > 0 ? rotuloVariacao(((d.valorAtual - d.valorAnterior) / d.valorAnterior) * 100) : '—' }}
+                </td>
+              </tr>
+            </template>
+
+            <!-- 4. (=) RESULTADO LÍQUIDO -->
+            <tr class="bg-brand-50/70 border-t-2 border-brand-500 font-bold text-ink text-base">
+              <td class="py-4 pl-4 pr-3">
+                <div class="flex items-center gap-2">
+                  <span class="flex h-6 w-6 items-center justify-center rounded-full bg-brand-700 text-xs text-white">4</span>
+                  <span class="font-bold text-brand-900">(=) Resultado Líquido</span>
+                </div>
+              </td>
+              <td
+                class="py-4 px-3 text-right font-bold text-base"
+                :class="(dre?.kpis.resultadoLiquido ?? 0) >= 0 ? 'text-emerald-700' : 'text-danger-700'"
+              >
+                {{ formatCurrency(dre?.kpis.resultadoLiquido ?? 0) }}
+              </td>
+              <td class="py-4 px-3 text-right text-xs font-bold text-brand-800">
+                {{ dre?.kpis.margemLiquida ? `${dre.kpis.margemLiquida}%` : '—' }}
+              </td>
+              <td
+                class="py-4 px-3 text-right font-semibold text-ink-muted"
+                :class="(dre?.linhas.find(l => l.codigo === '4')?.valorAnterior ?? 0) >= 0 ? 'text-emerald-700' : 'text-danger-700'"
+              >
+                {{ formatCurrency(dre?.linhas.find(l => l.codigo === '4')?.valorAnterior ?? 0) }}
+              </td>
+              <td class="py-4 px-3 text-right text-xs text-ink-muted">
+                {{ dre?.linhas.find(l => l.codigo === '4')?.percentualVerticalAnterior ? `${dre.linhas.find(l => l.codigo === '4')?.percentualVerticalAnterior}%` : '—' }}
+              </td>
+              <td
+                class="py-4 px-3 text-right text-xs font-semibold"
+                :class="(dre?.linhas.find(l => l.codigo === '4')?.variacaoNominal ?? 0) >= 0 ? 'text-emerald-700' : 'text-danger-700'"
+              >
+                {{ (dre?.linhas.find(l => l.codigo === '4')?.variacaoNominal ?? 0) > 0 ? '+' : '' }}{{ formatCurrency(dre?.linhas.find(l => l.codigo === '4')?.variacaoNominal ?? 0) }}
+              </td>
+              <td class="py-4 pl-3 pr-4 text-right">
                 <span
-                  class="inline-block rounded px-2 py-0.5 text-xs font-semibold"
-                  :class="{
-                    'bg-green-100 text-green-800': l.variacaoPercentual > 0 && l.tipo !== 'CUSTO' && l.tipo !== 'DESPESA',
-                    'bg-danger-100 text-danger-800': l.variacaoPercentual < 0 && l.tipo !== 'CUSTO' && l.tipo !== 'DESPESA',
-                    'bg-amber-100 text-amber-800': l.variacaoPercentual > 0 && (l.tipo === 'CUSTO' || l.tipo === 'DESPESA'),
-                    'bg-surface-bg text-ink-muted': l.variacaoPercentual === 0,
-                  }"
+                  class="inline-block rounded px-2.5 py-1 text-xs font-semibold"
+                  :class="(dre?.linhas.find(l => l.codigo === '4')?.variacaoPercentual ?? 0) >= 0 ? 'bg-emerald-100 text-emerald-800' : 'bg-danger-100 text-danger-800'"
                 >
-                  {{ rotuloVariacao(l.variacaoPercentual) }}
+                  {{ rotuloVariacao(dre?.linhas.find(l => l.codigo === '4')?.variacaoPercentual ?? 0) }}
                 </span>
               </td>
             </tr>

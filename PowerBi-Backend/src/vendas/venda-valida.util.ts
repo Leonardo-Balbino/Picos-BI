@@ -17,10 +17,23 @@
  * tela de Pagamentos "não bater" com a Visão Geral.
  */
 
-const PALAVRAS_STATUS_INVALIDO = ['cancel', 'estorn', 'exclu', 'rascunho']
+const PALAVRAS_STATUS_INVALIDO = [
+  'cancel',
+  'estorn',
+  'exclu',
+  'rascunho',
+  'pré-venda',
+  'pre-venda',
+  'pré venda',
+  'pre venda',
+  'prevenda',
+  'orçamento',
+  'orcamento',
+]
 
 export interface DocumentoParcial {
   modelo?: unknown
+  modeloDescricao?: unknown
   valTotal: unknown
   tipoMovimento: string
   tipoMovimentoFinanceiro: string
@@ -29,9 +42,11 @@ export interface DocumentoParcial {
 }
 
 export function isVendaValida(doc: DocumentoParcial): boolean {
-  if (['PV', 'PP'].includes(String(doc.modelo ?? '').trim().toUpperCase())) return false
+  const modelo = String(doc.modelo ?? '').trim().toUpperCase()
+  // Modelos excluídos estritamente: PV (Pré-Venda), PP (Pré-Pedido), TR, SF, FC, AX
+  if (['PV', 'PP', 'TR', 'SF', 'FC', 'AX', 'AR', 'AS', 'RU', 'EA', 'AC'].includes(modelo)) return false
   if (doc.valTotal === null || doc.valTotal === undefined) return false
   if (doc.tipoMovimento !== 'S' || doc.tipoMovimentoFinanceiro !== 'R') return false
-  const descricao = `${doc.statusDescricao || ''} ${doc.status || ''}`.toLowerCase()
+  const descricao = `${doc.statusDescricao || ''} ${doc.status || ''} ${doc.modeloDescricao || ''}`.toLowerCase()
   return !PALAVRAS_STATUS_INVALIDO.some((palavra) => descricao.includes(palavra))
 }

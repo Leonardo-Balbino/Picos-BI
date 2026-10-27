@@ -13,7 +13,7 @@ export const useFiltersStore = defineStore('filters', {
     dataAtivaIso(state): string {
       const hojeStr = paraDataApi(new Date())
       if (state.periodo === 'dia') return hojeStr
-      if (state.periodo === 'ontem') {
+      if (state.periodo === 'ontem' || state.periodo === 'dia-anterior') {
         const ontem = addDias(new Date(), -1)
         return paraDataApi(ontem)
       }
@@ -24,7 +24,7 @@ export const useFiltersStore = defineStore('filters', {
     },
 
     isModoDia(state): boolean {
-      if (state.periodo === 'dia' || state.periodo === 'ontem') return true
+      if (state.periodo === 'dia' || state.periodo === 'ontem' || state.periodo === 'dia-anterior') return true
       if (state.periodo === 'personalizado' && state.range.inicio && state.range.inicio === state.range.fim) {
         return true
       }
@@ -54,7 +54,7 @@ export const useFiltersStore = defineStore('filters', {
     setPreset(preset: PeriodoPreset) {
       if (preset === 'dia') {
         this.setHoje()
-      } else if (preset === 'ontem') {
+      } else if (preset === 'ontem' || preset === 'dia-anterior') {
         this.setOntem()
       } else {
         this.periodo = preset

@@ -142,7 +142,7 @@ export class SyncService {
   }
 
   async sincronizarOperacional(idLojaAlvo?: string): Promise<ResultadoSync | undefined> {
-    return this.exclusivo(() => this.sincronizarSnapshotsInterno(idLojaAlvo, ['PRODUTO', 'PESSOA', 'ESTOQUE', 'CONTA_RECEBER']))
+    return this.exclusivo(() => this.sincronizarSnapshotsInterno(idLojaAlvo, ['PRODUTO', 'PESSOA', 'ESTOQUE', 'CONTA_RECEBER', 'CONTA_PAGAR']))
   }
 
   /** Tentativas na janela das 03h, uma execução concluída por dia. */

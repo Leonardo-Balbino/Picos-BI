@@ -38,6 +38,7 @@ export function resolverIntervalo(periodo: PeriodoPreset, range: PeriodoRange, a
     switch (periodo) {
       case 'dia':
         return { inicio: inicioDoDia(agora), fim }
+      case 'ontem':
       case 'dia-anterior': {
         const ontem = addDias(agora, -1)
         return { inicio: inicioDoDia(ontem), fim: fimDoDia(ontem) }
@@ -53,10 +54,10 @@ export function resolverIntervalo(periodo: PeriodoPreset, range: PeriodoRange, a
         return { inicio: inicioDoDia(addDias(agora, -(JANELA_FATURAMENTO_DIAS - 1))), fim }
       case 'personalizado': {
         const ontem = addDias(agora, -1)
-        const inicioParsed = range.inicio ? inicioDoDia(new Date(range.inicio + 'T00:00:00')) : inicioDoDia(ontem)
+        const inicioParsed = range.inicio ? inicioDoDia(parseDataLocal(range.inicio)) : inicioDoDia(ontem)
         const fimParsed = range.fim
-          ? fimDoDia(new Date(range.fim + 'T00:00:00'))
-          : (range.inicio ? fimDoDia(new Date(range.inicio + 'T00:00:00')) : fimDoDia(ontem))
+          ? fimDoDia(parseDataLocal(range.fim))
+          : (range.inicio ? fimDoDia(parseDataLocal(range.inicio)) : fimDoDia(ontem))
         return {
           inicio: inicioParsed,
           fim: fimParsed,

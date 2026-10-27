@@ -177,11 +177,28 @@ export class VendasService {
       ['vendedores-itens-v2', inicio, fim, ids?.slice().sort().join(',') ?? 'todas', idCaixa ?? 'todos'].join(':'))
     return this.redis.getOrSet(chave, async () => {
       const vendas = await this.prisma.venda.findMany({
-        where: { data: { gte: dataInicio, lte: dataFim }, tipoMovimento: 'S', tipoMovimentoFinanceiro: 'R',
-          valTotal: { gt: 0 }, ...(ids ? { idLoja: { in: ids } } : {}),
-          ...(idCaixa && idCaixa !== 'todos' ? { idCaixa } : {}) },
-        select: { codigo: true, modelo: true, idLoja: true, valTotal: true, tipoMovimento: true, tipoMovimentoFinanceiro: true,
-          status: true, statusDescricao: true, vendedores: true, loja: { select: { nome: true } } },
+        where: {
+          data: { gte: dataInicio, lte: dataFim },
+          tipoMovimento: 'S',
+          tipoMovimentoFinanceiro: 'R',
+          valTotal: { gt: 0 },
+          modelo: { notIn: ['PV', 'PP', 'TR', 'SF', 'FC', 'AX', 'AR', 'AS', 'RU', 'EA', 'AC'] },
+          ...(ids ? { idLoja: { in: ids } } : {}),
+          ...(idCaixa && idCaixa !== 'todos' ? { idCaixa } : {}),
+        },
+        select: {
+          codigo: true,
+          modelo: true,
+          modeloDescricao: true,
+          idLoja: true,
+          valTotal: true,
+          tipoMovimento: true,
+          tipoMovimentoFinanceiro: true,
+          status: true,
+          statusDescricao: true,
+          vendedores: true,
+          loja: { select: { nome: true } },
+        },
       })
       return resumirVendedores(vendas)
     })
@@ -226,7 +243,8 @@ export class VendasService {
     const selecionadas = idsLojas.split(',').map((id) => id.trim()).filter(Boolean)
     const termo = busca.trim().toLocaleLowerCase()
     const filtradas = vendas.filter((v) =>
-      Number.isFinite(v.valTotal) && (v.valTotal ?? 0) > 0 && !['PV', 'PP', 'TR'].includes(v.modelo) &&
+      Number.isFinite(v.valTotal) && (v.valTotal ?? 0) > 0 &&
+      !['PV', 'PP', 'TR', 'SF', 'FC', 'AX', 'AR', 'AS', 'RU', 'EA', 'AC'].includes(v.modelo) &&
       (selecionadas.length === 0 || Boolean(v.idLoja && selecionadas.includes(v.idLoja))) &&
       (!idCaixa || idCaixa === 'todos' || v.idCaixa === idCaixa) &&
       (!termo || v.numero.toLocaleLowerCase().includes(termo) || v.nomeUsuario.toLocaleLowerCase().includes(termo)),
@@ -257,6 +275,7 @@ export class VendasService {
       tipoMovimento: 'S',
       tipoMovimentoFinanceiro: 'R',
       valTotal: { not: null },
+      modelo: { notIn: ['PV', 'PP', 'TR', 'SF', 'FC', 'AX', 'AR', 'AS', 'RU', 'EA', 'AC'] },
     }
 
     if (lojasFiltro && lojasFiltro.length > 0) {

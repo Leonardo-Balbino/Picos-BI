@@ -20,6 +20,8 @@ import type {
   Comissao,
 } from '@/types'
 
+export type { PaginaVendas }
+
 export function getVendasPeriodo(inicio: string, fim: string, signal?: AbortSignal): Promise<Venda[]> {
   return apiGet<Venda[]>('/vendas', { inicio, fim }, signal)
 }
@@ -194,6 +196,27 @@ export interface LinhaDre {
   variacaoPercentual: number
 }
 
+export interface LinhaPlanoContas {
+  [key: string]: unknown
+  codigo?: string
+  descricao: string
+  valorAtual: number
+  valorAnterior: number
+  percentual: number
+}
+
+export interface EstruturaDreItem {
+  rotulo: string
+  tipo: 'RECEITA' | 'CUSTO' | 'DESPESA' | 'RESULTADO'
+  valorAtual: number
+  valorAnterior: number
+  variacaoNominal: number
+  variacaoPercentual: number
+  percentualVerticalAtual: number
+  percentualVerticalAnterior: number
+  detalhes?: LinhaPlanoContas[]
+}
+
 export interface DreResultado {
   periodoAtual: { inicio: string; fim: string }
   periodoAnterior: { inicio: string; fim: string }
@@ -205,7 +228,14 @@ export interface DreResultado {
     resultadoLiquido: number
     margemLiquida: number
   }
+  estrutura?: {
+    receita: EstruturaDreItem
+    custos: EstruturaDreItem
+    despesas: EstruturaDreItem
+    resultadoLiquido: EstruturaDreItem
+  }
   linhas: LinhaDre[]
+  despesasDetalhadas?: LinhaPlanoContas[]
 }
 
 export function getDre(
