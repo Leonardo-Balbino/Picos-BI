@@ -26,9 +26,7 @@ const { forcarAtualizacao } = useRecarregarDados()
 const periodos: { value: PeriodoPreset; label: string; icon?: string }[] = [
   { value: 'dia', label: 'Hoje', icon: 'bi-calendar-check' },
   { value: 'ontem', label: 'Ontem', icon: 'bi-clock-history' },
-  { value: 'semana', label: 'Semana' },
   { value: 'mes', label: 'Mês' },
-  { value: 'trimestre', label: '90 dias' },
   { value: 'ano', label: '1 Ano' },
 ]
 

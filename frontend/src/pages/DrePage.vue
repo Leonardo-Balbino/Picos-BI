@@ -171,32 +171,54 @@ const seriesGrafico = computed(() => {
   ]
 })
 
-function rotuloVariacao(varPerc: number): string {
-  if (varPerc > 0) return `+${formatPercent(varPerc, true)}`
-  return formatPercent(varPerc, true)
-}
-
 function dispararExportacaoCsv() {
-  if (!dre.value?.linhas.length) return
+  if (!dre.value) return
   const colunas = [
-    { chave: 'conta', rotulo: 'Conta / Descrição' },
-    { chave: 'valorAtual', rotulo: `Período Atual (${dre.value.periodoAtual.inicio} a ${dre.value.periodoAtual.fim})` },
-    { chave: 'avAtual', rotulo: 'AV % Atual' },
-    { chave: 'valorAnt', rotulo: `Período Comparativo (${dre.value.periodoAnterior.inicio} a ${dre.value.periodoAnterior.fim})` },
-    { chave: 'avAnt', rotulo: 'AV % Anterior' },
-    { chave: 'varNom', rotulo: 'Variação Nominal (R$)' },
-    { chave: 'varPerc', rotulo: 'Variação % (AH)' },
+    { chave: 'conta', rotulo: 'ESTRUTURA / PLANO DE CONTAS' },
+    { chave: 'valorAtual', rotulo: `PERÍODO ATUAL (R$) (${dre.value.periodoAtual.inicio} a ${dre.value.periodoAtual.fim})` },
+    { chave: 'avAtual', rotulo: '% SOBRE A RECEITA (AV %)' },
   ]
 
-  const linhas = dre.value.linhas.map((l) => ({
-    conta: l.descricao,
-    valorAtual: formatCurrency(l.valorAtual),
-    avAtual: l.percentualVerticalAtual ? `${l.percentualVerticalAtual}%` : '—',
-    valorAnt: formatCurrency(l.valorAnterior),
-    avAnt: l.percentualVerticalAnterior ? `${l.percentualVerticalAnterior}%` : '—',
-    varNom: formatCurrency(l.variacaoNominal),
-    varPerc: `${l.variacaoPercentual}%`,
-  }))
+  const rl = dre.value.kpis.receitaLiquida || 0
+  const linhas: { conta: string; valorAtual: string; avAtual: string }[] = []
+
+  // 1. Receita
+  linhas.push({
+    conta: '1. Receita',
+    valorAtual: formatCurrency(dre.value.kpis.receitaLiquida),
+    avAtual: '100,00%',
+  })
+
+  // 2. Custos
+  const linhaCustos = dre.value.linhas.find((l) => l.codigo === '2')
+  linhas.push({
+    conta: '2. (-) Custos (CMV)',
+    valorAtual: formatCurrency(linhaCustos?.valorAtual ?? 0),
+    avAtual: linhaCustos?.percentualVerticalAtual ? `${linhaCustos.percentualVerticalAtual}%` : '—',
+  })
+
+  // 3. Despesas
+  linhas.push({
+    conta: '3. (-) Despesas Operacionais',
+    valorAtual: formatCurrency(-(dre.value.kpis.despesasOperacionais ?? 0)),
+    avAtual: rl > 0 ? `${((dre.value.kpis.despesasOperacionais / rl) * 100).toFixed(2)}%` : '—',
+  })
+
+  // 3.x Plano de Contas
+  for (const d of despesasDetalhadas.value) {
+    linhas.push({
+      conta: `   ↳ [Plano] ${d.descricao}`,
+      valorAtual: formatCurrency(-d.valorAtual),
+      avAtual: rl > 0 ? `${((d.valorAtual / rl) * 100).toFixed(2)}%` : '—',
+    })
+  }
+
+  // 4. Resultado Líquido
+  linhas.push({
+    conta: '4. (=) Resultado Líquido',
+    valorAtual: formatCurrency(dre.value.kpis.resultadoLiquido),
+    avAtual: dre.value.kpis.margemLiquida ? `${dre.value.kpis.margemLiquida}%` : '—',
+  })
 
   exportarCsv(`dre-${dre.value.periodoAtual.inicio}-${dre.value.periodoAtual.fim}`, colunas, linhas)
 }
@@ -424,12 +446,8 @@ const mesesNomes = [
           <thead>
             <tr class="border-b border-surface-border text-xs uppercase tracking-wider text-ink-muted">
               <th class="py-3 pl-4 pr-3 font-semibold">Estrutura / Plano de Contas</th>
-              <th class="py-3 px-3 text-right font-semibold">Período Atual</th>
-              <th class="py-3 px-3 text-right font-semibold">AV %</th>
-              <th class="py-3 px-3 text-right font-semibold">Período Anterior</th>
-              <th class="py-3 px-3 text-right font-semibold">AV % Ant</th>
-              <th class="py-3 px-3 text-right font-semibold">Var. Nominal (R$)</th>
-              <th class="py-3 pl-3 pr-4 text-right font-semibold">Var. % (AH)</th>
+              <th class="py-3 px-4 text-right font-semibold">Período Atual (R$)</th>
+              <th class="py-3 pl-3 pr-4 text-right font-semibold">% sobre a Receita (AV %)</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-surface-border/50">
@@ -441,23 +459,10 @@ const mesesNomes = [
                   <span class="text-sm font-bold">Receita</span>
                 </div>
               </td>
-              <td class="py-3.5 px-3 text-right font-bold text-emerald-800">
+              <td class="py-3.5 px-4 text-right font-bold text-emerald-800">
                 {{ formatCurrency(dre?.kpis.receitaLiquida ?? 0) }}
               </td>
-              <td class="py-3.5 px-3 text-right text-xs font-semibold text-emerald-800">100,00%</td>
-              <td class="py-3.5 px-3 text-right font-semibold text-ink-muted">
-                {{ formatCurrency(dre?.linhas.find(l => l.codigo === '1')?.valorAnterior ?? 0) }}
-              </td>
-              <td class="py-3.5 px-3 text-right text-xs text-ink-muted">100,00%</td>
-              <td class="py-3.5 px-3 text-right text-xs font-semibold"
-                :class="(dre?.linhas.find(l => l.codigo === '1')?.variacaoNominal ?? 0) >= 0 ? 'text-emerald-700' : 'text-danger-700'">
-                {{ (dre?.linhas.find(l => l.codigo === '1')?.variacaoNominal ?? 0) > 0 ? '+' : '' }}{{ formatCurrency(dre?.linhas.find(l => l.codigo === '1')?.variacaoNominal ?? 0) }}
-              </td>
-              <td class="py-3.5 pl-3 pr-4 text-right">
-                <span class="inline-block rounded px-2 py-0.5 text-xs font-semibold bg-emerald-100 text-emerald-800">
-                  {{ rotuloVariacao(dre?.linhas.find(l => l.codigo === '1')?.variacaoPercentual ?? 0) }}
-                </span>
-              </td>
+              <td class="py-3.5 pl-3 pr-4 text-right text-xs font-semibold text-emerald-800">100,00%</td>
             </tr>
 
             <!-- 2. (-) CUSTOS -->
@@ -468,25 +473,11 @@ const mesesNomes = [
                   <span class="text-sm font-semibold text-ink">(-) Custos (CMV)</span>
                 </div>
               </td>
-              <td class="py-3 px-3 text-right text-danger-700 font-semibold">
+              <td class="py-3 px-4 text-right text-danger-700 font-semibold">
                 {{ formatCurrency(dre?.linhas.find(l => l.codigo === '2')?.valorAtual ?? 0) }}
               </td>
-              <td class="py-3 px-3 text-right text-xs text-ink-muted">
+              <td class="py-3 pl-3 pr-4 text-right text-xs text-ink-muted">
                 {{ dre?.linhas.find(l => l.codigo === '2')?.percentualVerticalAtual ? `${dre.linhas.find(l => l.codigo === '2')?.percentualVerticalAtual}%` : '—' }}
-              </td>
-              <td class="py-3 px-3 text-right text-ink-muted">
-                {{ formatCurrency(dre?.linhas.find(l => l.codigo === '2')?.valorAnterior ?? 0) }}
-              </td>
-              <td class="py-3 px-3 text-right text-xs text-ink-muted">
-                {{ dre?.linhas.find(l => l.codigo === '2')?.percentualVerticalAnterior ? `${dre.linhas.find(l => l.codigo === '2')?.percentualVerticalAnterior}%` : '—' }}
-              </td>
-              <td class="py-3 px-3 text-right text-xs font-semibold text-ink-muted">
-                {{ formatCurrency(dre?.linhas.find(l => l.codigo === '2')?.variacaoNominal ?? 0) }}
-              </td>
-              <td class="py-3 pl-3 pr-4 text-right">
-                <span class="inline-block rounded px-2 py-0.5 text-xs font-semibold bg-surface-bg text-ink-muted">
-                  {{ rotuloVariacao(dre?.linhas.find(l => l.codigo === '2')?.variacaoPercentual ?? 0) }}
-                </span>
               </td>
             </tr>
 
@@ -503,25 +494,11 @@ const mesesNomes = [
                   </span>
                 </div>
               </td>
-              <td class="py-3 px-3 text-right text-danger-700 font-bold">
+              <td class="py-3 px-4 text-right text-danger-700 font-bold">
                 {{ formatCurrency(-(dre?.kpis.despesasOperacionais ?? 0)) }}
               </td>
-              <td class="py-3 px-3 text-right text-xs font-semibold text-amber-900">
+              <td class="py-3 pl-3 pr-4 text-right text-xs font-semibold text-amber-900">
                 {{ dre?.kpis.receitaLiquida ? `${((dre.kpis.despesasOperacionais / dre.kpis.receitaLiquida) * 100).toFixed(2)}%` : '—' }}
-              </td>
-              <td class="py-3 px-3 text-right font-semibold text-ink-muted">
-                {{ formatCurrency(dre?.linhas.find(l => l.codigo === '3')?.valorAnterior ?? 0) }}
-              </td>
-              <td class="py-3 px-3 text-right text-xs text-ink-muted">
-                {{ dre?.linhas.find(l => l.codigo === '3')?.percentualVerticalAnterior ? `${dre.linhas.find(l => l.codigo === '3')?.percentualVerticalAnterior}%` : '—' }}
-              </td>
-              <td class="py-3 px-3 text-right text-xs font-semibold text-ink-muted">
-                {{ formatCurrency(dre?.linhas.find(l => l.codigo === '3')?.variacaoNominal ?? 0) }}
-              </td>
-              <td class="py-3 pl-3 pr-4 text-right">
-                <span class="inline-block rounded px-2 py-0.5 text-xs font-semibold bg-surface-bg text-ink-muted">
-                  {{ rotuloVariacao(dre?.linhas.find(l => l.codigo === '3')?.variacaoPercentual ?? 0) }}
-                </span>
               </td>
             </tr>
 
@@ -540,21 +517,11 @@ const mesesNomes = [
                     <span class="font-medium text-ink">{{ d.descricao }}</span>
                   </div>
                 </td>
-                <td class="py-2.5 px-3 text-right text-danger-600 font-semibold">
+                <td class="py-2.5 px-4 text-right text-danger-600 font-semibold">
                   {{ formatCurrency(-d.valorAtual) }}
                 </td>
-                <td class="py-2.5 px-3 text-right text-ink-muted">
-                  {{ d.percentual ? `${d.percentual}% das despesas` : '—' }}
-                </td>
-                <td class="py-2.5 px-3 text-right text-ink-muted">
-                  {{ formatCurrency(-d.valorAnterior) }}
-                </td>
-                <td class="py-2.5 px-3 text-right text-ink-muted">—</td>
-                <td class="py-2.5 px-3 text-right text-ink-muted">
-                  {{ formatCurrency(d.valorAtual - d.valorAnterior) }}
-                </td>
-                <td class="py-2.5 pl-3 pr-4 text-right text-ink-muted">
-                  {{ d.valorAnterior > 0 ? rotuloVariacao(((d.valorAtual - d.valorAnterior) / d.valorAnterior) * 100) : '—' }}
+                <td class="py-2.5 pl-3 pr-4 text-right text-xs text-ink-muted">
+                  {{ dre?.kpis.receitaLiquida ? `${((d.valorAtual / dre.kpis.receitaLiquida) * 100).toFixed(2)}%` : '—' }}
                 </td>
               </tr>
             </template>
@@ -568,36 +535,13 @@ const mesesNomes = [
                 </div>
               </td>
               <td
-                class="py-4 px-3 text-right font-bold text-base"
+                class="py-4 px-4 text-right font-bold text-base"
                 :class="(dre?.kpis.resultadoLiquido ?? 0) >= 0 ? 'text-emerald-700' : 'text-danger-700'"
               >
                 {{ formatCurrency(dre?.kpis.resultadoLiquido ?? 0) }}
               </td>
-              <td class="py-4 px-3 text-right text-xs font-bold text-brand-800">
+              <td class="py-4 pl-3 pr-4 text-right text-xs font-bold text-brand-800">
                 {{ dre?.kpis.margemLiquida ? `${dre.kpis.margemLiquida}%` : '—' }}
-              </td>
-              <td
-                class="py-4 px-3 text-right font-semibold text-ink-muted"
-                :class="(dre?.linhas.find(l => l.codigo === '4')?.valorAnterior ?? 0) >= 0 ? 'text-emerald-700' : 'text-danger-700'"
-              >
-                {{ formatCurrency(dre?.linhas.find(l => l.codigo === '4')?.valorAnterior ?? 0) }}
-              </td>
-              <td class="py-4 px-3 text-right text-xs text-ink-muted">
-                {{ dre?.linhas.find(l => l.codigo === '4')?.percentualVerticalAnterior ? `${dre.linhas.find(l => l.codigo === '4')?.percentualVerticalAnterior}%` : '—' }}
-              </td>
-              <td
-                class="py-4 px-3 text-right text-xs font-semibold"
-                :class="(dre?.linhas.find(l => l.codigo === '4')?.variacaoNominal ?? 0) >= 0 ? 'text-emerald-700' : 'text-danger-700'"
-              >
-                {{ (dre?.linhas.find(l => l.codigo === '4')?.variacaoNominal ?? 0) > 0 ? '+' : '' }}{{ formatCurrency(dre?.linhas.find(l => l.codigo === '4')?.variacaoNominal ?? 0) }}
-              </td>
-              <td class="py-4 pl-3 pr-4 text-right">
-                <span
-                  class="inline-block rounded px-2.5 py-1 text-xs font-semibold"
-                  :class="(dre?.linhas.find(l => l.codigo === '4')?.variacaoPercentual ?? 0) >= 0 ? 'bg-emerald-100 text-emerald-800' : 'bg-danger-100 text-danger-800'"
-                >
-                  {{ rotuloVariacao(dre?.linhas.find(l => l.codigo === '4')?.variacaoPercentual ?? 0) }}
-                </span>
               </td>
             </tr>
           </tbody>

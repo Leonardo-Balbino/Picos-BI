@@ -4,7 +4,7 @@ import { paraDataApi, parseDataLocal, addDias } from '@/utils/periodo'
 
 export const useFiltersStore = defineStore('filters', {
   state: (): FiltrosState => ({
-    periodo: 'semana',
+    periodo: 'mes',
     range: { inicio: '', fim: '' },
     idCaixa: 'todos',
     lojasSelecionadas: [],
